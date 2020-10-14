@@ -15,8 +15,16 @@ def newGame(userId, hard):#hard - 3х значное число
             h += 1
         file.close()
 
+def haveSave(userId):
+    try:
+        file = open('Game/' + str(userId) + '.txt', 'r')
+        file.close()
+        return True
+    except:
+        return False
 
-
+def getWey():
+    return 0
 def getLine(userId, line):
         file = open('Game/' + str(userId) + '.txt', 'r')
         file.seek(line*9)
@@ -40,7 +48,6 @@ def addPrint(userId, print):
         else:
             file.close()
             return False
-
 
 def check(userId):
         file = open('Game/' + str(userId) + 'p.txt', 'r')

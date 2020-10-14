@@ -27,34 +27,9 @@ for event in Lslongpoll.listen():
             userStatus = data.getUserStatus(event.user_id)
             #Если пользователь в меню
             if userStatus == '0':
-                if event.text[:8] == 'Подписка':
-                    SUBS = data.getUserSUBS(event.user_id)
-                    mmessasge = ''
-                    if event.text[9:] == 'на_что-то_там':
-                        if SUBS[0] == '0':
-                            data.setUserSUBS(event.user_id, '1' + SUBS[1:])
-                            mmessage = 'Теперь ты подписан на_что-то_там'
-                        else:
-                            data.setUserSUBS(event.user_id, '0' + SUBS[1:])
-                            mmessage = 'Ты отписался от на_что-то_там'
-                        Lsvk.messages.send(
-                        user_id = event.user_id,
-                        random_id = get_random_id(),
-                        keyboard = keyboards.subs(event.user_id).get_keyboard(),
-                        message = mmessage
-                        )
-
-                var = ['Подписки']
+                var = ['Играть']# Кнопка которая отправляла пользователя в меню игры и меняла его статус на в меню игры
                 if event.text in var:
-                    Lsvk.messages.send(
-                        user_id = event.user_id,
-                        random_id = get_random_id(),
-                        keyboard = keyboards.subs(event.user_id).get_keyboard(),
-                        message = 'Тут находятся твои подписочки, все на что ты подписан выделено зеленым, на что не подписан красным, чтобы подписаться/отписаться нажми'
-                        )
-                var = ['Играть']
-                if event.text in var:
-                    data.setUserStatus(event.user_id, 'G0')
+                    data.setUserStatus(event.user_id, 'G0')#изменение статуса
                     Lsvk.messages.send(
                         user_id = event.user_id,
                         random_id = get_random_id(),
@@ -64,7 +39,7 @@ for event in Lslongpoll.listen():
                                   'Ты можешь отметить путь на котором сейчас стоишь, отметка - 3 любых символа, можешь осмотреться в поисках отметок, а так же пойти назад, налево, вправо.'
                                   'Удачи!'
                         )
-                var = ['Профиль']
+                var = ['Профиль']#Кнопка отправляла в меню для записи студака и отправляла клавиатуру
                 if event.text in var:
                     massage = ""
                     FIO = data.getUserFIO(event.user_id)
@@ -86,7 +61,7 @@ for event in Lslongpoll.listen():
                         keyboard = keyboards.profile(event.user_id).get_keyboard(),
                         message = mmessage
                         )
-                var = ['ФИО']
+                var = ['ФИО']#Кнопка для изменения фио
                 if event.text in var:
                     data.setUserStatus(event.user_id, '2')
                     Lsvk.messages.send(
@@ -95,7 +70,7 @@ for event in Lslongpoll.listen():
                         keyboard = keyboards.back(event.user_id).get_keyboard(),
                         message = 'Теперь просто введи свое ФИО'
                         )
-                var = ['Cтудак']
+                var = ['Cтудак']#Кнопка для изменения студака
                 if event.text in var:
                     data.setUserStatus(event.user_id, '1')
                     Lsvk.messages.send(
@@ -104,7 +79,7 @@ for event in Lslongpoll.listen():
                         keyboard = keyboards.back(event.user_id).get_keyboard(),
                         message = 'Теперь просто введи номер студака'
                         )
-                var = ['Назад']
+                var = ['Назад']#Кнопка кторая возвращала в меню
                 if event.text in var:
                     Lsvk.messages.send(
                         user_id = event.user_id,
@@ -112,9 +87,9 @@ for event in Lslongpoll.listen():
                         keyboard = keyboards.mainMenu(event.user_id).get_keyboard(),
                         message = 'Снова в меню.'
                     )
-            elif userStatus[0] == 'G':
-                if userStatus[1] == '0':
-                    var = ['Новая игра']
+            elif userStatus[0] == 'G':###Проверка в игре ты или нет (все статусы начинающиеся с G относились к игре)
+                if userStatus[1] == '0':# Статус G0 игровое меню
+                    var = ['Новая игра']# Кнопка новая игра запрашивает сложность, меняет статус на G1 - ожидание сложности + отправляем клаву с отменой
                     if event.text in var:
                         data.setUserStatus(event.user_id, 'G1')
                         Lsvk.messages.send(
@@ -123,29 +98,25 @@ for event in Lslongpoll.listen():
                             keyboard = keyboards.back(event.user_id).get_keyboard(),
                             message = 'Введи сложность - число от 1 до 9'
                         )
-                    var = ['Продолжить']
-                    if event.text in var:
-                        try:
-                            a = game.getLine(event.user_id, 0)
-                            if a[0][0] == '-1':
-                                a /= 0
-                            else:
-                                data.setUserStatus(event.user_id, 'G2')
-                                Lsvk.messages.send(
+                    var = ['Продолжить'] # Продолжает игру, если ести сейв, если нет запрашивает сложность для создания новой игры
+                    if event.text in var:#
+                        if game.haveSave(event.user_id):#Проверка наличия сейвов
+                            data.setUserStatus(event.user_id, 'G2')
+                            Lsvk.messages.send(
                                     user_id = event.user_id,
                                     random_id = get_random_id(),
                                     keyboard = keyboards.game(event.user_id).get_keyboard(),
                                     message = 'Сохранение загружено'
                                 )
-                        except:
-                            data.setUserStatus(event.user_id, 'G1')
+                        else:
+                            data.setUserStatus(event.user_id, 'G1')#Статус ожидается сложность + отправляем клаву с отменой
                             Lsvk.messages.send(
                                 user_id = event.user_id,
                                 random_id = get_random_id(),
                                 keyboard = keyboards.back(event.user_id).get_keyboard(),
                                 message = 'Ошибка, сохранение не найдено, создание новой игры...\nВведи сложность - число от 1 до 9'
                             )
-                    var = ['Выход']
+                    var = ['Выход']#Выход из игрового меню в обычное
                     if event.text in var:
                         data.setUserStatus(event.user_id, '0')
                         Lsvk.messages.send(
@@ -154,8 +125,8 @@ for event in Lslongpoll.listen():
                             keyboard = keyboards.mainMenu(event.user_id).get_keyboard(),
                             message = 'Снова в меню.'
                         )
-                if userStatus[1] == '1':
-                    var = ['Отмена']
+                if userStatus[1] == '1':#Если ожидается сложность
+                    var = ['Отмена']    #Если вместо сложности получили отмену, Возвращаем в игровое меню + меняем статус
                     if event.text in var:
                         data.setUserStatus(event.user_id, 'G0')
                         Lsvk.messages.send(
@@ -164,10 +135,9 @@ for event in Lslongpoll.listen():
                             keyboard = keyboards.gameMenu(event.user_id).get_keyboard(),
                             message = 'Действие отменено.'
                         )
-                    else:
-                        try:
-                            hard = int(event.text[0])
-                            if hard>= 1 and hard<= 9:
+                    else: #Проверка ввода, создаем новую игру, меняем клаву на игровую, статус на в игре
+                        hard = int(event.text[0])
+                        if hard>= 1 and hard<= 9:
                                 game.newGame(event.user_id, hard*10)
                                 data.setUserStatus(event.user_id, 'G2')
                                 Lsvk.messages.send(
@@ -176,16 +146,14 @@ for event in Lslongpoll.listen():
                                     keyboard = keyboards.game(event.user_id).get_keyboard(),
                                     message = 'Ты в игре!'
                                 )
-                            else:
-                                hard /= 0
-                        except:
+                        else:
                             Lsvk.messages.send(
                                 user_id = event.user_id,
                                 random_id = get_random_id(),
                                 message = 'Некоректный ввод, попробуй еще раз'
                                 )
-                if userStatus[1] == '2':
-                    var = ['Назад', 'Налево' ,'Направо']
+                if userStatus[1] == '2':#Если в игре
+                    var = ['Назад', 'Налево' ,'Направо', 'Вперед']#Идем назад налево на право (Функция Move возвращает true когда вышел из лабиринта)
                     if event.text in var:
                         if game.move(event.user_id, var.index(event.text)):
                             data.setUserStatus(event.user_id, 'G0')
@@ -196,7 +164,7 @@ for event in Lslongpoll.listen():
                                 message = 'Поздравляем, ты вышел из лабиринта!'
                             )
                         else:
-                            i = game.check(event.user_id)
+                            i = game.check(event.user_id)#Если после передвижения, не вышел из лабиринта осматриваемся, возвращает массив отметок
                             Lsvk.messages.send(
                                 user_id = event.user_id,
                                 random_id = get_random_id(),
@@ -205,7 +173,7 @@ for event in Lslongpoll.listen():
                                           '\nСправа:' + i[2] +
                                           '\nПод ногами:' + i[0]
                             )
-                    var = ['Отметка']
+                    var = ['Отметка']#Меняем статус На ожидание отметки
                     if event.text in var:
                         data.setUserStatus(event.user_id, 'G3')
                         Lsvk.messages.send(
@@ -214,7 +182,7 @@ for event in Lslongpoll.listen():
                                 keyboard = keyboards.back(event.user_id).get_keyboard(),
                                 message = 'Введи отметку (3 символа)'
                             )
-                    var = ['В меню']
+                    var = ['В меню']#Просто возвращаем в игровое меню
                     if event.text in var:
                         data.setUserStatus(event.user_id, 'G0')
                         Lsvk.messages.send(
@@ -224,8 +192,8 @@ for event in Lslongpoll.listen():
                                 message = 'Игра сохранена.'
                             )
 
-                if userStatus[1] == '3':
-                    var = ['Отмена']
+                if userStatus[1] == '3':#Если ожидается отметка
+                    var = ['Отмена']#Ели отменяем, возврат к игре
                     if event.text in var:
                         data.setUserStatus(event.user_id, 'G2')
                         Lsvk.messages.send(
@@ -234,7 +202,7 @@ for event in Lslongpoll.listen():
                             keyboard = keyboards.game(event.user_id).get_keyboard(),
                             message = 'Действие отменено.'
                         )
-                    else:
+                    else:#В противном случае записываем отметку
                         text = event.text
                         if len(text) > 3:
                             text = text[:3]
@@ -248,7 +216,7 @@ for event in Lslongpoll.listen():
                             keyboard = keyboards.game(event.user_id).get_keyboard(),
                             message = 'Ты оставил отметку:' + text
                             )
-
+                #Примечание к игре, добавлю функцию которая возвращает количество путей в перекрестке 0- тупик 3 Перекресток крестом (Нужно для выбора правильной клавиатуры и тп)
 
             #Если пользователь отсуцтвует в бд, добавляем в бд
             elif userStatus == '-1':
@@ -261,7 +229,7 @@ for event in Lslongpoll.listen():
                     )
             #Если пользователь вводит свой студак
             elif userStatus == '1':
-                var = ['Отмена']
+                var = ['Отмена']#Отмена 
                 if event.text in var:
                     data.setUserStatus(event.user_id, '0')
                     Lsvk.messages.send(
@@ -280,7 +248,7 @@ for event in Lslongpoll.listen():
                     )
             #Если пользователь вводит свое ФИО
             elif userStatus == '2':
-                var = ['Отмена']
+                var = ['Отмена']#Отмена
                 if event.text in var:
                     data.setUserStatus(event.user_id, '0')
                     Lsvk.messages.send(
