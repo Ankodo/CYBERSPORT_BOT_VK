@@ -43,11 +43,12 @@ def addPrint(userId, print):
         mapId = file.read(3)
         gameInfo = file.read(11)
         if (gameInfo[4:7] != gameInfo[7:10]):
-            gameInfo = gameInfo[:7] + str(int(gameInfo[7:10]) + 1).rjust(3,'0') + '\n'
+            gameInfo = gameInfo[:7] + str(int(gameInfo[7:10]) + 1).rjust(3,'0') + gameInfo[10]
+
             prints = file.readlines()
             weyId = int(gameInfo[:3])
             localSimbolsId = int(gameInfo[3]) * 3
-            prints[weyId] = prints[weyId][:localSimbolsId] + print + prints[weyId][localSimbolsId+3:]
+            prints[weyId] = prints[weyId][:localSimbolsId] + print[:3].ljust(3, ' ') + prints[weyId][localSimbolsId+3:]
             file.close()
             file = open('Game/' + str(userId) + 'p.txt', 'w')
             file.write(mapId+gameInfo)

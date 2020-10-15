@@ -36,8 +36,7 @@ for event in Lslongpoll.listen():
                         random_id = get_random_id(),
                         keyboard = keyboards.gameMenu(event.user_id).get_keyboard(),
                         message = 'Рад представить игру - Лабиринт Минотавра, правда Минотавр в отпуске, поэтому это почти обычный лабиринт.'
-                                  'Его особенность в том, что он состоит из развилок похожих на Y, эти развилки связаны между собой абсолютно случайным образом. Тебе нужно выбраться из лабиринта.'
-                                  'Ты можешь отметить путь на котором сейчас стоишь, отметка - 3 любых символа, можешь осмотреться в поисках отметок, а так же пойти назад, налево, вправо.'
+                                  'Ты можешь отметить путь на котором сейчас стоишь, отметка - 3 любых символа, можешь осмотреться в поисках отметок, а так же пойти в любую сторону.'
                                   'Удачи!'
                         )
                 var = ['Профиль']#Кнопка отправляла в меню для записи студака и отправляла клавиатуру
@@ -170,6 +169,7 @@ for event in Lslongpoll.listen():
                                 Lsvk.messages.send(
                                     user_id = event.user_id,
                                     random_id = get_random_id(),
+                                    keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
                                     message = 'Ты пошел к следующей развилке и осмотрелся в поисках отметок\n' +
                                             'Cпереди:' + i[1] +
                                             '\nПод ногами:' + i[0]
@@ -178,6 +178,7 @@ for event in Lslongpoll.listen():
                                 Lsvk.messages.send(
                                     user_id = event.user_id,
                                     random_id = get_random_id(),
+                                    keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
                                     message = 'Ты пошел к следующей развилке и осмотрелся в поисках отметок\n' +
                                             'Слева:' + i[1] +
                                             '\nСправа:' + i[2] +
@@ -187,6 +188,7 @@ for event in Lslongpoll.listen():
                                 Lsvk.messages.send(
                                     user_id = event.user_id,
                                     random_id = get_random_id(),
+                                    keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
                                     message = 'Ты пошел к следующей развилке и осмотрелся в поисках отметок\n' +
                                             'Слева:' + i[1] +
                                             '\nСпереди:' + i[2] +
@@ -223,18 +225,13 @@ for event in Lslongpoll.listen():
                             message = 'Действие отменено.'
                         )
                     else:#В противном случае записываем отметку
-                        text = event.text
-                        if len(text) > 3:
-                            text = text[:3]
-                        else:
-                            text.ljust(3, ' ')
-                        game.addPrint(event.user_id, text)
+                        game.addPrint(event.user_id, event.text)
                         data.setUserStatus(event.user_id, 'G2')
                         Lsvk.messages.send(
                             user_id = event.user_id,
                             random_id = get_random_id(),
                             keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
-                            message = 'Ты оставил отметку:' + text
+                            message = 'Ты оставил отметку:' + event.text
                             )
                 #Примечание к игре, добавлю функцию которая возвращает количество путей в перекрестке 0- тупик 3 Перекресток крестом (Нужно для выбора правильной клавиатуры и тп)
 
