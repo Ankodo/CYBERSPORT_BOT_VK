@@ -151,8 +151,9 @@ for event in Lslongpoll.listen():
                             message = 'Действие отменено.'
                         )
                     else: #Проверка ввода, создаем новую игру, меняем клаву на игровую, статус на в игре
-                        hard = int(event.text[0])
-                        if hard>= 1 and hard<= 9:
+                        try:
+                            hard = int(event.text[0])
+                            if hard>= 1 and hard<= 9:
                                 game.newGame(event.user_id, hard)
                                 data.setUserStatus(event.user_id, 'G2')
                                 Lsvk.messages.send(
@@ -161,7 +162,9 @@ for event in Lslongpoll.listen():
                                     keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
                                     message = 'Ты в игре!'
                                 )
-                        else:
+                            else:
+                                hard = 1/0
+                        except:
                             Lsvk.messages.send(
                                 user_id = event.user_id,
                                 random_id = get_random_id(),
@@ -240,14 +243,21 @@ for event in Lslongpoll.listen():
                             message = 'Действие отменено.'
                         )
                     else:#В противном случае записываем отметку
-                        game.addPrint(event.user_id, event.text)
                         data.setUserStatus(event.user_id, 'G2')
-                        Lsvk.messages.send(
-                            user_id = event.user_id,
-                            random_id = get_random_id(),
-                            keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
-                            message = 'Ты оставил отметку:' + event.text
-                            )
+                        if game.addPrint(event.user_id, event.text):
+                            Lsvk.messages.send(
+                                user_id = event.user_id,
+                                random_id = get_random_id(),
+                                keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
+                                message = 'Ты оставил отметку:' + event.text[:3]
+                                )
+                        else:
+                            Lsvk.messages.send(
+                                user_id = event.user_id,
+                                random_id = get_random_id(),
+                                keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
+                                message = 'Упс, что-то пошло не так, отметка не оставлена.' + event.text[:3]
+                                )
                 #Примечание к игре, добавлю функцию которая возвращает количество путей в перекрестке 0- тупик 3 Перекресток крестом (Нужно для выбора правильной клавиатуры и тп)
 
             #Если пользователь отсуцтвует в бд, добавляем в бд

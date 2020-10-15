@@ -39,12 +39,15 @@ def getWey(userId):
     return r
 
 def addPrint(userId, print):
+    file = open('Game/' + str(userId) + 'p.txt', 'r')
+    save = file.read()
+    file.close()
+    try:
         file = open('Game/' + str(userId) + 'p.txt', 'r')
         mapId = file.read(3)
         gameInfo = file.read(11)
         if (gameInfo[4:7] != gameInfo[7:10]):
-            gameInfo = gameInfo[:7] + str(int(gameInfo[7:10]) + 1).rjust(3,'0') + gameInfo[10]
-
+            gameInfo = gameInfo[:7] + str(int(gameInfo[7:10]) + 1).rjust(3,'0') + '\n'
             prints = file.readlines()
             weyId = int(gameInfo[:3])
             localSimbolsId = int(gameInfo[3]) * 3
@@ -58,6 +61,12 @@ def addPrint(userId, print):
         else:
             file.close()
             return False
+    except:
+        file.close()
+        file = open('Game/' + str(userId) + 'p.txt', 'w')
+        file.write(save)
+        file.close()
+        return False
 
 def check(userId):
         file = open('Game/' + str(userId) + 'p.txt', 'r')
