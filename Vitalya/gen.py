@@ -1,4 +1,12 @@
 import random
+import os
+import os.path
+
+try:
+    os.mkdir('Game')
+    os.mkdir('Game/Maps')
+except:
+    print('')
 
 for lvl in range(1, 10):
     weys = lvl * 10 + 10
