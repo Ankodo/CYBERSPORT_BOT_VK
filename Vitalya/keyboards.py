@@ -1,4 +1,4 @@
-import vk_api, vk, data, info
+import vk_api, vk, data, info, game
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 def profile(userId):#Клавиатура с записью данныхБ меняетсю цвет
@@ -15,11 +15,23 @@ def profile(userId):#Клавиатура с записью данныхБ ме�
     keyboard.add_button('Назад', color=VkKeyboardColor.PRIMARY)
     return keyboard
 
-def game(userId): #Игровая клава с вариативным количеством кнопок
+def gameKeyboard(userId): #Игровая клава с вариативным количеством кнопок
     keyboard = VkKeyboard(one_time=False)
-    keyboard.add_button('Налево', color=VkKeyboardColor.POSITIVE)
-    keyboard.add_button('Назад', color=VkKeyboardColor.POSITIVE)
-    keyboard.add_button('Направо', color=VkKeyboardColor.POSITIVE)
+    a = game.getWey(userId)#Функция возвращает количество ответвлений в перекрестке от 2-4
+    if a == 2:
+        keyboard.add_button('Вперед', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_line()
+        keyboard.add_button('Назад', color=VkKeyboardColor.POSITIVE)
+    elif a == 3:
+        keyboard.add_button('Налево', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button('Назад', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button('Направо', color=VkKeyboardColor.POSITIVE)
+    elif a == 4:
+        keyboard.add_button('Вперед', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_line()
+        keyboard.add_button('Налево', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button('Назад', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button('Направо', color=VkKeyboardColor.POSITIVE)
     keyboard.add_line()
     keyboard.add_button('Отметка', color=VkKeyboardColor.PRIMARY)
     keyboard.add_line()

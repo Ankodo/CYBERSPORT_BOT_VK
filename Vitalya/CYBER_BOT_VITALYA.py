@@ -16,6 +16,7 @@ Lsvk = vk_session.get_api()
 
 try:
     os.mkdir('Game')
+    os.mkdir('Game/Maps')
     os.mkdir('UsersInfo')
 except:
     print('')
@@ -105,7 +106,7 @@ for event in Lslongpoll.listen():
                             Lsvk.messages.send(
                                     user_id = event.user_id,
                                     random_id = get_random_id(),
-                                    keyboard = keyboards.game(event.user_id).get_keyboard(),
+                                    keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
                                     message = 'Сохранение загружено'
                                 )
                         else:
@@ -138,12 +139,12 @@ for event in Lslongpoll.listen():
                     else: #Проверка ввода, создаем новую игру, меняем клаву на игровую, статус на в игре
                         hard = int(event.text[0])
                         if hard>= 1 and hard<= 9:
-                                game.newGame(event.user_id, hard*10)
+                                game.newGame(event.user_id, hard)
                                 data.setUserStatus(event.user_id, 'G2')
                                 Lsvk.messages.send(
                                     user_id = event.user_id,
                                     random_id = get_random_id(),
-                                    keyboard = keyboards.game(event.user_id).get_keyboard(),
+                                    keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
                                     message = 'Ты в игре!'
                                 )
                         else:
@@ -165,14 +166,33 @@ for event in Lslongpoll.listen():
                             )
                         else:
                             i = game.check(event.user_id)#Если после передвижения, не вышел из лабиринта осматриваемся, возвращает массив отметок
-                            Lsvk.messages.send(
-                                user_id = event.user_id,
-                                random_id = get_random_id(),
-                                message = 'Ты пошел к следующей развилке и осмотрелся в поисках отметок\n' +
-                                          'Слева:' + i[1] +
-                                          '\nСправа:' + i[2] +
-                                          '\nПод ногами:' + i[0]
-                            )
+                            if len(i) == 2:
+                                Lsvk.messages.send(
+                                    user_id = event.user_id,
+                                    random_id = get_random_id(),
+                                    message = 'Ты пошел к следующей развилке и осмотрелся в поисках отметок\n' +
+                                            'Cпереди:' + i[1] +
+                                            '\nПод ногами:' + i[0]
+                                    )
+                            if len(i) == 3:
+                                Lsvk.messages.send(
+                                    user_id = event.user_id,
+                                    random_id = get_random_id(),
+                                    message = 'Ты пошел к следующей развилке и осмотрелся в поисках отметок\n' +
+                                            'Слева:' + i[1] +
+                                            '\nСправа:' + i[2] +
+                                            '\nПод ногами:' + i[0]
+                                    )
+                            if len(i) == 4:
+                                Lsvk.messages.send(
+                                    user_id = event.user_id,
+                                    random_id = get_random_id(),
+                                    message = 'Ты пошел к следующей развилке и осмотрелся в поисках отметок\n' +
+                                            'Слева:' + i[1] +
+                                            '\nСпереди:' + i[2] +
+                                            '\nСправа:' + i[3] +
+                                            '\nПод ногами:' + i[0]
+                                    )
                     var = ['Отметка']#Меняем статус На ожидание отметки
                     if event.text in var:
                         data.setUserStatus(event.user_id, 'G3')
@@ -199,7 +219,7 @@ for event in Lslongpoll.listen():
                         Lsvk.messages.send(
                             user_id = event.user_id,
                             random_id = get_random_id(),
-                            keyboard = keyboards.game(event.user_id).get_keyboard(),
+                            keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
                             message = 'Действие отменено.'
                         )
                     else:#В противном случае записываем отметку
@@ -213,7 +233,7 @@ for event in Lslongpoll.listen():
                         Lsvk.messages.send(
                             user_id = event.user_id,
                             random_id = get_random_id(),
-                            keyboard = keyboards.game(event.user_id).get_keyboard(),
+                            keyboard = keyboards.gameKeyboard(event.user_id).get_keyboard(),
                             message = 'Ты оставил отметку:' + text
                             )
                 #Примечание к игре, добавлю функцию которая возвращает количество путей в перекрестке 0- тупик 3 Перекресток крестом (Нужно для выбора правильной клавиатуры и тп)

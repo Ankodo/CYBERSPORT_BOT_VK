@@ -1,48 +1,57 @@
 import random, os
 
 def newGame(userId, hard):#hard - 3х значное число
-        file = open('Game/' + str(userId) + 'p.txt', 'w')
-        #file.write(str(hard).rjust(3,'0')+'0'+str(hard/2).rjust(3,'0')+'000' + '   ' * hard)
-        file.write(str(hard-1).rjust(3,'0')+'0'+'999'+'000' + '         ' * hard)
+        Id = str(random.randint(1, 9))
+        file = open('Game/Maps/' + str(hard) + '.0' + Id + 'p.txt', 'r')
+        spase = file.readlines()
         file.close()
-        file = open('Game/' + str(userId) + '.txt', 'w')
-        h = 0
-        a1 = random.randint(2, hard // 4) * 2 - 1
-        b = hard // 2
-        a2 = hard - a1
-        while h < hard:
-            file.write(str((h + a1)%hard).rjust(3,'0')+ str((h + b)%hard).rjust(3,'0') + str((h + a2)%hard).rjust(3,'0'))
-            h += 1
+
+        file = open('Game/' + str(userId) + 'p.txt', 'w')
+        file.write(str(hard) + '0' + Id + str(random.randint(1, 9)).rjust(3,'0')+'0'+'999'+'000' + '\n')
+        file.writelines(spase)
         file.close()
 
 def haveSave(userId):
     try:
-        file = open('Game/' + str(userId) + '.txt', 'r')
+        file = open('Game/' + str(userId) + 'p.txt', 'r')
         file.close()
         return True
     except:
         return False
 
-def getWey():
-    return 0
-def getLine(userId, line):
-        file = open('Game/' + str(userId) + '.txt', 'r')
-        file.seek(line*9)
-        out = [file.read(3), file.read(3), file.read(3)]
-        file.close()
-        return out
+def getWey(userId):
+    file = open('Game/' + str(userId) + 'p.txt', 'r')
+    gameInfo = file.read(3)
+    oldL = file.read(3)
+    file.close()
+
+    file = open('Game/Maps/' + gameInfo[0]+ '.' + gameInfo[1:] + '.txt', 'r')
+    map = file.readlines()
+    file.close()
+
+    c = int(oldL)
+    r = 0
+    b = map[c][r:r+3]
+    while(b[0] != '\n'):
+        r += 3
+        b = map[c][r:r+3]
+    r //= 3
+    return r
 
 def addPrint(userId, print):
         file = open('Game/' + str(userId) + 'p.txt', 'r')
-        a = file.read(10)
-        if (a[4:7] != a[7:10]):
-            a = a[:7] + str(int(a[7:10]) + 1).rjust(3,'0')
-            b = file.read()
-            c = int(a[:3]) * 9 + int(a[3]) * 3
-            b= b[:c] + print + b[c+3:]
+        mapId = file.read(3)
+        gameInfo = file.read(11)
+        if (gameInfo[4:7] != gameInfo[7:10]):
+            gameInfo = gameInfo[:7] + str(int(gameInfo[7:10]) + 1).rjust(3,'0') + '\n'
+            prints = file.readlines()
+            weyId = int(gameInfo[:3])
+            localSimbolsId = int(gameInfo[3]) * 3
+            prints[weyId] = prints[weyId][:localSimbolsId] + print + prints[weyId][localSimbolsId+3:]
             file.close()
             file = open('Game/' + str(userId) + 'p.txt', 'w')
-            file.write(a+b)
+            file.write(mapId+gameInfo)
+            file.writelines(prints)
             file.close()
             return True
         else:
@@ -51,30 +60,68 @@ def addPrint(userId, print):
 
 def check(userId):
         file = open('Game/' + str(userId) + 'p.txt', 'r')
-        a = file.read(10)
-        b = file.read()
-        c = int(a[:3]) * 9
-        d = int(a[3])
-        out = [ b[c:c+3], b[c+3:c+6], b[c+6:c+9] ]
-        out = [out[d], out[(d+1)%3], out[(d+2)%3]]
+        gameInfo = file.read(14)
+        prints = file.readlines()
         file.close()
-        return out
+        c = int(gameInfo[3:6])
+        d = int(gameInfo[6])
+        out = []
+        a =  0
+        b = prints[c][a:a+3]
+        while(b[0] != '\n'):
+            out.append(b)
+            a += 3
+            b = prints[c][a:a+3]
+        a //= 3
+        out1 = []
+        for i in range(0, a):
+            out1.append(out[(d+i)%a])
+        return out1
 
-def move(userId, loc):#0 - назад, 1 налево, 2 - право
+def move(userId, loc):#0 - назад, 1 налево, 2 - право, 3 - Вперед
         file = open('Game/' + str(userId) + 'p.txt', 'r')
+        gameInfo = file.read(3)
         oldL = file.read(4)
-        b = file.read()
-        r = (int(oldL[3]) + loc) % 3
-        oldL = oldL[:3]
-        newL = getLine(userId, int(oldL))[r]
-        if newL == '000':
-            file.close()
-            os.remove('Game/' + str(userId) + 'p.txt')
-            os.remove('Game/' + str(userId) + '.txt')
-            return True
-        r = getLine(userId, int(newL)).index(oldL)
+        dopInfo = file.read(7)
+        prints = file.readlines()
         file.close()
+
+        r = getWey(userId)
+        if r == 2:
+            if loc == 3:
+                loc = 2
+        elif r == 4:
+            if loc == 2:
+                loc = 3
+            elif loc == 3:
+                loc = 2
+
+
+        file = open('Game/Maps/' + gameInfo[0]+ '.' + gameInfo[1:] + '.txt', 'r')
+        map = file.readlines()
+        file.close()
+
+        r = (int(oldL[3]) + loc) % r * 3
+
+        oldL = oldL[:3]
+
+        c = int(oldL)
+        newL = map[c][r:r+3]
+
+        if newL == '000':
+            os.remove('Game/' + str(userId) + 'p.txt')
+            return True
+
+        c = int(newL)
+        r =  0
+        b = map[c][r:r+3]
+        while(b != oldL):
+            r += 3
+            b = map[c][r:r+3]
+        r //= 3
+
         file = open('Game/' + str(userId) + 'p.txt', 'w')
-        file.write(newL+str(r)+b)
+        file.write(gameInfo + newL + str(r) + dopInfo)
+        file.writelines(prints)
         file.close()
         return False
