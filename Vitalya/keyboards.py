@@ -11,6 +11,10 @@ def profile(userId):#Клавиатура с записью данныхБ ме�
         keyboard.add_button('Cтудак', color=VkKeyboardColor.NEGATIVE)
     else:
         keyboard.add_button('Cтудак', color=VkKeyboardColor.POSITIVE)
+    if data.getUserGROUP(userId) == '0':
+        keyboard.add_button('Группа', color=VkKeyboardColor.NEGATIVE)
+    else:
+        keyboard.add_button('Группа', color=VkKeyboardColor.POSITIVE)
     keyboard.add_line()
     keyboard.add_button('Назад', color=VkKeyboardColor.PRIMARY)
     return keyboard

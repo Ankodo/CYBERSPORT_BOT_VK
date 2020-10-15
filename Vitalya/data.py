@@ -6,54 +6,72 @@
 #G1 - игра выбор сложности
 #G2 - В игре
 #G3 - отметка
+
+import sqlite3
+ 
+conn = sqlite3.connect("botdb.db") # или :memory: чтобы сохранить в RAM
+cursor = conn.cursor()
+ 
+try:
+    cursor.execute("""CREATE TABLE users_info
+                    (status text,
+                    vk_id text,
+                    STUD text, 
+                    FIO text,
+                    PARTY text)""")
+    print('db cleated')
+except:
+    print('db downloaded')
+
 def getUserStatus(userId):
     try:
-        file = open('UsersInfo/' + str(userId) + '.txt', 'r')
-        out = str(file.readline()).replace('\n', '')
-        file.close()
-        return out
+        sql = "SELECT status FROM users_info WHERE vk_id=?"
+        cursor.execute(sql, [str(userId)])
+        return cursor.fetchone()[0]
     except:
         return '-1'
 
 def addUser(userId):
-    file = open('UsersInfo/' + str(userId) + '.txt', 'w')
-    file.write('0\n0\n0\n0')
-    file.close
+    cursor.execute("""INSERT INTO users_info
+                  VALUES ('0', ?,'0','0','0')""", [str(userId)])
+    conn.commit()
 
 def getUserSTUD(userId):
-    file = open('UsersInfo/' + str(userId) + '.txt', 'r')
-    out = str(file.readlines()[1]).replace('\n', '')
-    file.close()
-    return out
+    sql = "SELECT STUD FROM users_info WHERE vk_id=?"
+    cursor.execute(sql, [str(userId)])
+    return cursor.fetchone()[0]
 
 def getUserFIO(userId):
-    file = open('UsersInfo/' + str(userId) + '.txt', 'r')
-    out = str(file.readlines()[2]).replace('\n', '')
-    file.close()
+    sql = "SELECT FIO FROM users_info WHERE vk_id=?"
+    cursor.execute(sql, [str(userId)])
+    return cursor.fetchone()[0]
     return out
 
-def getUserSUBS(userId):
-    file = open('UsersInfo/' + str(userId) + '.txt', 'r')
-    out = str(file.readlines()[3]).replace('\n', '')
-    file.close()
+def getUserGROUP(userId):
+    sql = "SELECT PARTY FROM users_info WHERE vk_id=?"
+    cursor.execute(sql, [str(userId)])
+    return cursor.fetchone()[0]
     return out
-
-def setUserInfo(userId, status, STUD, FIO, SUBS):
-    file = open('UsersInfo/' + str(userId) + '.txt', 'w')
-    file.write(status+'\n')
-    file.write(STUD+'\n')
-    file.write(FIO+'\n')
-    file.write(SUBS+'\n')
-    file.close
-
-def setUserSTUD(userId, STUD):
-    setUserInfo(userId, '0', STUD, getUserFIO(userId), getUserSUBS(userId))
-
-def setUserFIO(userId, FIO):
-    setUserInfo(userId, '0', getUserSTUD(userId), FIO, getUserSUBS(userId))
 
 def setUserStatus(userId, status):
-    setUserInfo(userId, status, getUserSTUD(userId), getUserFIO(userId), getUserSUBS(userId))
+    sql = "UPDATE users_info SET status=? WHERE vk_id=?"
+    cursor.execute(sql, [status, str(userId)])
+    conn.commit()
 
-def setUserSUBS(userId, SUBS):
-    setUserInfo(userId, '0', getUserSTUD(userId), getUserFIO(userId), SUBS)
+def setUserSTUD(userId, STUD):
+    sql = """UPDATE users_info SET STUD=? WHERE vk_id=?"""
+    cursor.execute(sql, [STUD, str(userId)])
+    conn.commit()
+    setUserStatus(userId, '0')
+
+def setUserFIO(userId, FIO):
+    sql = "UPDATE users_info SET FIO=? WHERE vk_id=?"
+    cursor.execute(sql, [FIO, str(userId)])
+    conn.commit()
+    setUserStatus(userId, '0')
+
+def setUserGROUP(userId, GROUP):
+    sql = "UPDATE users_info SET PARTY=? WHERE vk_id=?"
+    cursor.execute(sql, [GROUP, str(userId)])
+    conn.commit()
+    setUserStatus(userId, '0')

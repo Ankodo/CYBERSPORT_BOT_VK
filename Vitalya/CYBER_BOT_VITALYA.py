@@ -2,7 +2,7 @@ import random, vk_api, vk
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.utils import get_random_id
 
-import info, data, keyboards, game
+import info, keyboards, game
 import os
 import os.path
 
@@ -14,13 +14,16 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 Lslongpoll = VkLongPoll(vk_session)
 Lsvk = vk_session.get_api()
 
+import data
+
 try:
     os.mkdir('Game')
     os.mkdir('Game/Maps')
     os.mkdir('UsersInfo')
+    print('dir created')
 except:
-    print('')
-print('start')
+    print('dir found')
+print('bot started')
 for event in Lslongpoll.listen():
     if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
         if event.from_user:
@@ -41,20 +44,23 @@ for event in Lslongpoll.listen():
                         )
                 var = ['Профиль']#Кнопка отправляла в меню для записи студака и отправляла клавиатуру
                 if event.text in var:
-                    massage = ""
-                    FIO = data.getUserFIO(event.user_id)
-                    STUD = data.getUserSTUD(event.user_id)
-                    if FIO != '0' and STUD != '0':
-                        mmessage = ('Ты уже ввел свое ФИО и номер студака, можешь проверить \n'+
-                                    'Номер студака:' + STUD + '\n' +
-                                    'ФИО:' + FIO + '\n' +
-                                    'Если есть ошибка, можешь исправить просто нажми на нужную кнопку')
-                    elif FIO != '0' and STUD == '0':
-                        mmessage = 'Введи номер своего студака, для ввода просто нажми кнопку студак'
-                    elif FIO == '0' and STUD != '0':
-                        mmessage = 'Введи свое ФИО, для ввода просто нажми кнопку ФИО'
+                    mmessage = ""
+                    FIO   = data.getUserFIO(event.user_id)
+                    STUD  = data.getUserSTUD(event.user_id)
+                    GROUP = data.getUserGROUP(event.user_id)
+                    if FIO == '0':
+                        mmessage += 'Ты не ввел свое ФИО\n'
                     else:
-                        mmessage = 'Введи свое ФИО и номер студака, для ввода просто нажми на соответствующую кнопку'
+                        mmessage += 'Тебя зовут ' + FIO + '\n'
+                    if STUD == '0':
+                        mmessage += 'Ты не указал свой студак\n'
+                    else:
+                        mmessage += 'Номер твоего студака ' + STUD + '\n'
+                    if GROUP == '0':
+                        mmessage += 'Ты не ввел номер своей группы\n'
+                    else:
+                        mmessage += 'Ты в группе ' + GROUP + '\n'
+                    mmessage += 'Если есть ошибка или чего-то не хватает, можешь исправить просто нажми на нужную кнопку'
                     Lsvk.messages.send(
                         user_id = event.user_id,
                         random_id = get_random_id(),
@@ -78,6 +84,15 @@ for event in Lslongpoll.listen():
                         random_id = get_random_id(),
                         keyboard = keyboards.back(event.user_id).get_keyboard(),
                         message = 'Теперь просто введи номер студака'
+                        )
+                var = ['Группа']#Кнопка для изменения студака
+                if event.text in var:
+                    data.setUserStatus(event.user_id, '3')
+                    Lsvk.messages.send(
+                        user_id = event.user_id,
+                        random_id = get_random_id(),
+                        keyboard = keyboards.back(event.user_id).get_keyboard(),
+                        message = 'Теперь просто введи свою группу'
                         )
                 var = ['Назад']#Кнопка кторая возвращала в меню
                 if event.text in var:
@@ -261,7 +276,7 @@ for event in Lslongpoll.listen():
                     user_id = event.user_id,
                     random_id = get_random_id(),
                     keyboard = keyboards.profile(event.user_id).get_keyboard(),
-                    message = 'Новый номер студака сохранен.'
+                    message = 'Номер студака сохранен.'
                     )
             #Если пользователь вводит свое ФИО
             elif userStatus == '2':
@@ -281,4 +296,23 @@ for event in Lslongpoll.listen():
                     random_id = get_random_id(),
                     keyboard = keyboards.profile(event.user_id).get_keyboard(),
                     message = 'ФИО изменено.'
+                    )
+            #Если пользователь вводит свою группу
+            elif userStatus == '3':
+                var = ['Отмена']#Отмена
+                if event.text in var:
+                    data.setUserStatus(event.user_id, '0')
+                    Lsvk.messages.send(
+                    user_id = event.user_id,
+                    random_id = get_random_id(),
+                    keyboard = keyboards.profile(event.user_id).get_keyboard(),
+                    message = 'Отмена ввода данных.'
+                    )
+                else:
+                    data.setUserGROUP(event.user_id, event.text.replace('\n', ''))
+                    Lsvk.messages.send(
+                    user_id = event.user_id,
+                    random_id = get_random_id(),
+                    keyboard = keyboards.profile(event.user_id).get_keyboard(),
+                    message = 'Группа изменена.'
                     )
