@@ -1,12 +1,13 @@
+#   TODO: обращаться к классу Клавиатуры для ее установки к бд
+#   self.setCurrentKeyboard(event, keyboard) привязать к функции выше
+
 from vk_api import VkApi
 from datetime import datetime
 from vk_api.utils import get_random_id
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 
-from keyboards import *
-
-
 class MessageHandler:
+    """Обработчик сообщений"""
     def __init__(self, bot, db):
         super().__init__()
         self.bot = bot
@@ -35,19 +36,11 @@ class MessageHandler:
         else:
             self.checkPending(event)
 
-    def sayHi(self, event):
-        self.bot.writeMsg(event.obj.message['from_id'], "привет!!!")
-
-    def showSimilar(self, event):
-        self.bot.writeMsg(event.obj.message['from_id'], "Похожие команды:")
-
-    def showExampleKeyboard(self, event):
-        self.db.select("Students", "user_id", f"WHERE user_id='{event.obj.message['from_id']}'")
-        res = self.db.cursor.fetchone()
-        if res == None:
-            self.bot.sendKeyboard(event.obj.message['from_id'], """Для начала следует войти 🐉""", "login_keyboard")
-        else:
-            self.bot.sendKeyboard(event.obj.message['from_id'], """Держи 🐉""", "main_sub_keyboard")
+    def setCurrentKeyboard(self, event, keyboard):
+        """Установить клавиатуру в бд"""
+        user_id = event.obj.message['from_id']
+        self.db.update("Students", "current_keyboard", f"'{keyboard}'", f"WHERE user_id='{user_id}'")
+        self.db.connection.commit()
 
     def checkPending(self, event):
         self.db.select("Pending", "act", f"WHERE user_id='{event.obj.message['from_id']}'")
@@ -59,6 +52,30 @@ class MessageHandler:
                 print("Pending есть у юзера")
                 self.PendingStats[res](event)
 
+    ###
+
+    def sayHi(self, event):
+        self.bot.writeMsg(event.obj.message['from_id'], "привет!!!")
+
+    def showSimilar(self, event):
+        self.bot.writeMsg(event.obj.message['from_id'], "Похожие команды:")
+
+    def showExampleKeyboard(self, event):
+        print("Поиск в БД")
+        user_id = event.obj.message['from_id']
+        self.db.select("Students", "user_id", f"WHERE user_id='{user_id}'")
+        res = self.db.cursor.fetchone()
+        print("Поиск закончен")
+        if res == None:
+            print("юзер не вошел")
+            self.bot.sendKeyboard(user_id, "main_login_keyboard", """Для начала следует войти 🐉""")
+            self.db.insert("Students", "user_id, current_keyboard", f"'{user_id}', 'main_login_keyboard'")
+            self.db.connection.commit()
+        else:
+            print("юзер найден")
+            self.bot.sendKeyboard(user_id, "main_sub_keyboard", """Держи 🐉""")
+            self.setCurrentKeyboard(event, "main_sub_keyboard")
+
     #### РЕГИСТРАЦИЯ ####
 
     def registerName(self, event):
@@ -66,99 +83,96 @@ class MessageHandler:
         self.db.update("Students", "full_name", f"'{event.obj.message['text']}'", f"WHERE user_id = '{event.obj.message['from_id']}'")
         self.db.update("Pending", "act", "'REGISTER_CODE'", f"WHERE user_id = '{event.obj.message['from_id']}'")
         self.db.connection.commit()
-        self.bot.writeMsg(event.obj.message['from_id'], "Рад познакомиться. 🐉 Теперь введи свою группу в формате ШИФР-ЧИСЛО-ЧИСЛО")
+        self.bot.writeMsg(event.obj.message['from_id'], "Рад познакомиться. 🐉 Теперь введи шифр свое группы")
 
     def registerCode(self, event):
         # Регистрируем код
         self.db.update("Students", "code", f"'{event.obj.message['text']}'", f"WHERE user_id = '{event.obj.message['from_id']}'")
-        self.db.update("Pending", "act", "'NONE'", f"WHERE user_id = '{event.obj.message['from_id']}'")
+        self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{event.obj.message['from_id']}'")
         self.db.connection.commit()
-        self.bot.sendKeyboard(event.obj.message['from_id'], "Добро пожаловать. Еще раз 🐉", "main_sub_keyboard")
-        self.bot.writeMsg(event.obj.message['from_id'], 
-"""
-Помимо меню бот может управляться с помощью команд. Перед командами ставится восклицательный знак:
-!сброс - если что-то пошло не так
-!клавиатура - вызов меню
-"""
-        )
+        self.bot.sendKeyboard(event.obj.message['from_id'], "main_sub_keyboard", "Я запомнил 🐉")
+        self.setCurrentKeyboard(event, "main_sub_keyboard")
 
     ####
 
 
 class ButtonHandler:
+    """Обработчик нажатий на кнопки"""
     def __init__(self, bot, db):
-        #TODO: Привязать действия к клавиатуре, а не к одному обработчику
         super().__init__()
         self.ButtonCommands = {
-            "login_call":               self.loginCall,
-            "information_call":         self.infoCall,
-            "information_edit_call":    self.infoEditCall,
-            "sub_call":                 self.subCall,
-            "unsub_call":               self.unSubCall,
-            "notes_call":               lambda x: self.bot.writeMsg(x.obj.user_id, "Тут что-то будет про записи 🤔🤔🤔"),
-            "game_call":                self.gameCall,
-            "exit_call":                self.exitCall
+            #   Кнопки-сообщения
+            "info_edit_call":    self.infoEditCall
         }
 
         self.bot = bot
         self.db = db
 
-    def checkCommand(self, event):
-        print("Нажата кнопка")
-        if event.obj.payload.get('type') in self.ButtonCommands:
-            self.ButtonCommands[event.obj.payload.get('type')](event)
-
-    def loginCall(self, event):
-        # ВХОД
-        # NOTE: Лучше стоит заменить на MINI APPS
-        self.bot.writeMsg(event.obj.user_id, "Поиск в базе")
-        self.db.select("Students", "user_id", f"WHERE user_id='{event.obj.user_id}'")
-        res = self.db.cursor.fetchone()
-        if res == None:
-            self.bot.writeMsg(event.obj.user_id, "Для начала введи свое полное имя")
-            self.db.insert("Students", "user_id", f"'{event.obj.user_id}'")
-            self.db.insert("Pending", "user_id, act", f"'{event.obj.user_id}', 'REGISTER_NAME'")
-            self.db.connection.commit()
-        else:
-            self.bot.sendKeyboard(event.obj.user_id, "Вы успешно авторизовались!", "main_sub_keyboard")
-
-    def infoCall(self, event):
-        self.db.select("Students", "user_id", f"WHERE user_id='{event.obj.user_id}'")
-        res1 = self.db.cursor.fetchone()
-        self.db.select("Students", "full_name", f"WHERE user_id='{event.obj.user_id}'")
-        res2 = self.db.cursor.fetchone()
-        self.db.select("Students", "code", f"WHERE user_id='{event.obj.user_id}'")
-        res3 = self.db.cursor.fetchone()
-
-        if res1 != None and res2 != None and res3 != None:
-            text = f"""
-id = {res1[0]}
-Имя - {res2[0]}
-Группа - {res3[0]}
-"""
-        print(text)
-        self.bot.sendKeyboard(event.obj.user_id, text, "inforamtion_edit_keyboard")
+    #
+    #   Кнопки-сообщения
+    #
 
     def infoEditCall(self, event):
         self.bot.writeMsg(event.obj.user_id, "Введи свое полное имя")
         self.db.update("Pending", "act", "'REGISTER_NAME'", f"WHERE user_id = '{event.obj.user_id}'")
         self.db.connection.commit()
 
-    def subCall(self, event):
-        self.bot.sendKeyboard(event.obj.user_id, "Вы подписались на новости группы", "main_uns_keyboard")
+    #
+    #   Обработчик
+    #
 
-    def unSubCall(self, event):
-        self.bot.sendKeyboard(event.obj.user_id, "Вы отписались от новостей группы", "main_sub_keyboard")
+    def checkCommand(self, event):
+        print("Нажата кнопка")
+        user_id = event.obj.user_id
+        call = event.obj.payload.get('type')
+        keyboard = self.getCurrentKeyboard(user_id)
 
-    def gameCall(self, event):
-        self.bot.writeMsg(event.obj.user_id, "К сожалению, из-за спагетти кода было решено провести рефакторинг, поэтому игры пока-что нету")
+        if not self.checkPending(user_id):
+            if keyboard == None:
+                self.bot.writeMsg(event.obj.user_id, "Пожалуйста, отправьте скриншот адмнистраторам.\nОшибка: клавиатура не привязана к бд") 
+            elif self.bot.keyboards[keyboard].checkCommand(event):
+                # Если функция была найдена и выполнена
+                #self.refresh(user_id, keyboard)
+                pass
+            elif call in self.ButtonCommands:
+                # Если это кнопка-сообщение
+                self.ButtonCommands[call](event)
+            else:
+                # Такого эвента нет
+                self.bot.writeMsg(event.obj.user_id, "Пожалуйста, отправьте скриншот адмнистраторам.\nОшибка: эвент не найден") 
+        else:
+            self.bot.writeMsg(user_id, "От Вас ожидается ввод данных.")
 
+    def checkPending(self, user_id):
+        self.db.select("Pending", "act", f"WHERE user_id='{user_id}'")
+        res = self.db.cursor.fetchone()
+        if res == None:
+            return False
+        elif res[0] != None:
+            print(res)
+            return True
+        else: return False
 
-    def exitCall(self, event):
-        self.bot.sendKeyboard(event.obj.user_id, "Удачи! 🐉", "login_keyboard")
+    def setCurrentKeyboard(self, event, keyboard):
+        """Установить клавиатуру в бд"""
+        user_id = event.obj.user_id
+        self.db.update("Students", "current_keyboard", f"'{keyboard}'", f"WHERE user_id='{user_id}'")
+        self.db.connection.commit()
 
+    def getCurrentKeyboard(self, user_id):
+        keyboard = None
+        self.db.select("Students", "current_keyboard", f"WHERE user_id='{user_id}'")
+        res = self.db.cursor.fetchone()
+        if res != None:
+            keyboard = res[0]
+
+        return keyboard
+
+    def refresh(self, user_id, keyboard):
+        self.bot.sendKeyboard(user_id, keyboard)
 
 class Bot:
+    """Бот"""
     def __init__(self, token, id):
         super().__init__()
         self.token = token
@@ -168,20 +182,13 @@ class Bot:
         self.vk = self.session.get_api()
         self.longpoll = VkBotLongPoll(self.session, group_id=id)
 
-        self.keyboards = {
-            "login_keyboard": KeyboardLogin().keyboard,
-            "main_sub_keyboard": KeyboardMainNoSub().keyboard,
-            "main_uns_keyboard": KeyboardMainWithSub().keyboard,
+        self.keyboards = None
 
-            "inforamtion_edit_keyboard": EditProfile().keyboard
-        }
+    def setKeyboards(self, keyboards):
+        self.keyboards = keyboards
 
     def newUser(self, event):
-        self.sendKeyboard(event.obj.user_id, 
-"""Добро пожаловать! 🐉
-Прежде чем начать, давай познакомимся 👀
-Для этого, пожалуйста, заполни свой профиль ниже ☺"""
-        ,"login_keyboard")
+        self.sendKeyboard(event.obj.user_id, "login_keyboard", "Добро пожаловать!\n Давай заполним твой профиль")
 
     def userExit(self, event):
         print(f"Пользователь {event.obj.user_id} запретил сообщения.")
@@ -193,11 +200,23 @@ class Bot:
         ownid = "-199323686"
         self.session.method('messages.send', {'user_id': user_id, "random_id":get_random_id(), "attachment":f"{attachment_type}{ownid}_{attachment_id}"})
 
-    def sendKeyboard(self, from_id, text, keyboard):
+    def sendKeyboard(self, from_id, keyboard, text=""):
         if keyboard in self.keyboards:
-            self.vk.messages.send(
-                        user_id=from_id,
-                        random_id=get_random_id(),
-                        peer_id=from_id,
-                        keyboard=self.keyboards[keyboard].get_keyboard(),
-                        message=text)
+            if text != "":
+                self.vk.messages.send(
+                            user_id=from_id,
+                            random_id=get_random_id(),
+                            peer_id=from_id,
+                            keyboard=self.keyboards[keyboard].keyboard.get_keyboard(),
+                            message=text
+                            )
+            else:
+                self.vk.messages.send(
+                            user_id=from_id,
+                            random_id=get_random_id(),
+                            peer_id=from_id,
+                            keyboard=self.keyboards[keyboard].keyboard.get_keyboard(),
+                            # ДУРОВ ПОЧЕМУ НЕЛЬЗЯ ОТПРАВИТЬ КЛАВИАТУРУ БЕЗ ТЕКСТА
+                            # И ВЕРНИ СТЕНУ
+                            message="Выполнено"
+                            )
