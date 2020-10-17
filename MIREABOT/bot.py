@@ -20,7 +20,9 @@ class MessageHandler:
 
         self.PendingStats = {
             "REGISTER_NAME" : self.registerName,
-            "REGISTER_CODE" : self.registerCode
+            "REGISTER_CODE" : self.registerCode,
+            "EDIT_NAME" : self.editName,
+            "EDIT_CODE" : self.editCode
         }
 
     def checkCommand(self, event):
@@ -51,8 +53,10 @@ class MessageHandler:
             if res in self.PendingStats:
                 print("Pending есть у юзера")
                 self.PendingStats[res](event)
+            else:
+                self.bot.writeMsg(event.obj.message['from_id'], f"Ошибка: {res} не найден.")
 
-    ###
+    ####    КОМАНДЫ    #### 
 
     def sayHi(self, event):
         self.bot.writeMsg(event.obj.message['from_id'], "привет!!!")
@@ -69,14 +73,14 @@ class MessageHandler:
         if res == None:
             print("юзер не вошел")
             self.bot.sendKeyboard(user_id, "main_login_keyboard", """Для начала следует войти 🐉""")
-            self.db.insert("Students", "user_id, current_keyboard", f"'{user_id}', 'main_login_keyboard'")
+            self.db.insert("Students", "user_id, current_keyboard, subscribed", f"'{user_id}', 'main_login_keyboard', '0'")
             self.db.connection.commit()
         else:
             print("юзер найден")
             self.bot.sendKeyboard(user_id, "main_sub_keyboard", """Держи 🐉""")
             self.setCurrentKeyboard(event, "main_sub_keyboard")
 
-    #### РЕГИСТРАЦИЯ ####
+    ####    РЕГИСТРАЦИЯ    ####
 
     def registerName(self, event):
         # Регистрируем имя
@@ -93,7 +97,22 @@ class MessageHandler:
         self.bot.sendKeyboard(event.obj.message['from_id'], "main_sub_keyboard", "Я запомнил 🐉")
         self.setCurrentKeyboard(event, "main_sub_keyboard")
 
-    ####
+    ####    РЕДАКТИРОВАНИЕ    ####
+    def editName(self, event):
+        # Редактируем имя
+        user_id = event.obj.message['from_id']
+        self.db.update("Students", "full_name", f"'{event.obj.message['text']}'", f"WHERE user_id = '{event.obj.message['from_id']}'")
+        self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{event.obj.message['from_id']}'")
+        self.db.connection.commit()
+        self.bot.sendKeyboard(user_id, "main_info_edit_keyboard", "Имя успешно обновлено")
+
+    def editCode(self, event):
+        # Редактируем код
+        user_id = event.obj.message['from_id']
+        self.db.update("Students", "code", f"'{event.obj.message['text']}'", f"WHERE user_id = '{event.obj.message['from_id']}'")
+        self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{event.obj.message['from_id']}'")
+        self.db.connection.commit()
+        self.bot.sendKeyboard(user_id, "main_info_edit_keyboard", "Группа успешно обновлена")
 
 
 class ButtonHandler:
@@ -113,9 +132,10 @@ class ButtonHandler:
     #
 
     def infoEditCall(self, event):
-        self.bot.writeMsg(event.obj.user_id, "Введи свое полное имя")
-        self.db.update("Pending", "act", "'REGISTER_NAME'", f"WHERE user_id = '{event.obj.user_id}'")
-        self.db.connection.commit()
+        """Пользователь нажал на кнопку редактирования профиля"""
+        user_id = event.obj.user_id
+        self.bot.sendKeyboard(user_id, "main_info_edit_keyboard")
+        self.setCurrentKeyboard(event, "main_info_edit_keyboard")
 
     #
     #   Обработчик

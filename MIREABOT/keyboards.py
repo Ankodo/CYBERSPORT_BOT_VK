@@ -26,6 +26,20 @@ class KeyBoard:
         self.db.update("Students", "current_keyboard", f"'{keyboard}'", f"WHERE user_id='{user_id}'")
         self.db.connection.commit()
 
+    def getMainMenuKeyboard(self, event):
+        user_id = event.obj.user_id
+        self.db.select("Students", "subscribed", f"WHERE user_id='{user_id}'")
+        res = self.db.cursor.fetchone()
+
+        if res != None:
+            if res[0] == '1':
+                return "main_uns_keyboard"
+            else:
+                return "main_sub_keyboard"
+        else:
+            self.bot.writeMsg(event.obj.user_id, "Пожалуйста, отправьте скриншот адмнистраторам.\nОшибка: у пользователя нет статуса о подписке")
+            return "NULL"
+
 
 class KeyboardMessage(KeyBoard):
     """Клавиатура-сообщение"""
@@ -115,6 +129,8 @@ class KeyboardMainMenuSub(KeyboardMainMenu):
 
     def subCall(self, event):
         """Подписаться на новости"""
+        self.db.update("Students", "subscribed", "'1'", f"WHERE user_id = '{event.obj.user_id}'")
+        self.db.connection.commit()
         self.bot.sendKeyboard(event.obj.user_id, "main_uns_keyboard", "Вы подписались на новости группы")
         self.setCurrentKeyboard(event, "main_uns_keyboard")
 
@@ -135,6 +151,8 @@ class KeyboardMainMenuUnsub(KeyboardMainMenu):
 
     def unsubCall(self, event):
         """Отписаться от новостей"""
+        self.db.update("Students", "subscribed", "'0'", f"WHERE user_id = '{event.obj.user_id}'")
+        self.db.connection.commit()
         self.bot.sendKeyboard(event.obj.user_id, "main_sub_keyboard", "Вы отписались от новостей группы")
         self.setCurrentKeyboard(event, "main_sub_keyboard")
         
@@ -147,7 +165,7 @@ class KeyboardLogin(KeyboardMain):
     """Кнопка входа"""
     def __init__(self, bot, db):
         super().__init__(bot, db)
-        self.name = "main_main_login_keyboard"
+        self.name = "main_login_keyboard"
         self.calls = {
             "login_call" : self.loginCall,
         }
@@ -167,8 +185,50 @@ class KeyboardLogin(KeyboardMain):
             self.db.insert("Pending", "user_id, act", f"'{user_id}', 'REGISTER_NAME'")
             self.db.connection.commit()
         else:
-            self.bot.sendKeyboard(user_id, "main_sub_keyboard", "Вы успешно авторизовались!")
-            self.setCurrentKeyboard(event, "main_sub_keyboard")
+            keyboard = self.getMainMenuKeyboard(event)
+            self.bot.sendKeyboard(user_id, keyboard, "Вы успешно авторизовались!")
+            self.setCurrentKeyboard(event, keyboard)
+
+
+#
+#   Редактирование профиля
+#
+
+
+class KeyboardMainEditProfile(KeyboardMain):
+    """Клавиатура с кнопками для редактирования профиля"""
+    def __init__(self, bot, db):
+        super().__init__(bot, db)
+        self.name = "main_info_edit_keyboard"
+        self.calls = {
+            "info_edit_name_call" : self.editNameCall,
+            "info_edit_group_call" : self.editGroupCall,
+            "to_menu_call" : self.toMenuCall
+        }
+        self.keyboard.add_callback_button(label='Редактировать имя', color=VkKeyboardColor.PRIMARY , payload={"type": "info_edit_name_call"})
+        self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='Редактировать группу', color=VkKeyboardColor.PRIMARY , payload={"type": "info_edit_group_call"})
+        self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='В меню', color=VkKeyboardColor.PRIMARY , payload={"type": "to_menu_call"})
+
+    def editNameCall(self, event):
+        """Редактирование имени пользователя"""
+        self.bot.writeMsg(event.obj.user_id, "Введи свое полное имя")
+        self.db.update("Pending", "act", "'EDIT_NAME'", f"WHERE user_id = '{event.obj.user_id}'")
+        self.db.connection.commit()
+
+    def editGroupCall(self, event):
+        """Редактирование группы пользователя"""
+        self.bot.writeMsg(event.obj.user_id, "Введи свою группу")
+        self.db.update("Pending", "act", "'EDIT_CODE'", f"WHERE user_id = '{event.obj.user_id}'")
+        self.db.connection.commit()
+
+    def toMenuCall(self, event):
+        keyboard = self.getMainMenuKeyboard(event)
+        self.bot.sendKeyboard(event.obj.user_id, keyboard)
+        self.setCurrentKeyboard(event, keyboard)
+
+
 
 #
 # Побочные кнопки в виде сообщений

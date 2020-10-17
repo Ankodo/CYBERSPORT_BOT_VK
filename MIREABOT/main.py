@@ -23,6 +23,7 @@ Keyboards = {
         "main_login_keyboard": KeyboardLogin(bot, db),
         "main_sub_keyboard": KeyboardMainMenuSub(bot, db),
         "main_uns_keyboard": KeyboardMainMenuUnsub(bot, db),
+        "main_info_edit_keyboard" : KeyboardMainEditProfile(bot, db),
         "inforamtion_edit_keyboard": KeyboardEditProfile(bot, db)
 }
 
