@@ -121,7 +121,8 @@ class ButtonHandler:
         super().__init__()
         self.ButtonCommands = {
             #   Кнопки-сообщения
-            "info_edit_call":    self.infoEditCall
+            "info_edit_call":    self.infoEditCall,
+            "cancel_call":       self.cancellCall
         }
 
         self.bot = bot
@@ -137,6 +138,13 @@ class ButtonHandler:
         self.bot.sendKeyboard(user_id, "main_info_edit_keyboard")
         self.setCurrentKeyboard(event, "main_info_edit_keyboard")
 
+    def cancellCall(self, event):
+        """Пользователь отменил ввод данных"""
+        user_id = event.obj.user_id
+        self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{user_id}'")
+        self.db.connection.commit()
+        self.bot.sendKeyboard(user_id, self.getCurrentKeyboard(user_id), "Отменяем ввод")
+
     #
     #   Обработчик
     #
@@ -145,9 +153,10 @@ class ButtonHandler:
         print("Нажата кнопка")
         user_id = event.obj.user_id
         call = event.obj.payload.get('type')
+        exception = event.obj.payload.get('exception')
         keyboard = self.getCurrentKeyboard(user_id)
 
-        if not self.checkPending(user_id):
+        def runEvent():
             if keyboard == None:
                 self.bot.writeMsg(event.obj.user_id, "Пожалуйста, отправьте скриншот адмнистраторам.\nОшибка: клавиатура не привязана к бд") 
             elif self.bot.keyboards[keyboard].checkCommand(event):
@@ -160,6 +169,11 @@ class ButtonHandler:
             else:
                 # Такого эвента нет
                 self.bot.writeMsg(event.obj.user_id, "Пожалуйста, отправьте скриншот адмнистраторам.\nОшибка: эвент не найден") 
+
+        if not self.checkPending(user_id):
+            runEvent()
+        elif exception != None:
+            runEvent()
         else:
             self.bot.writeMsg(user_id, "От Вас ожидается ввод данных.")
 

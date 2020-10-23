@@ -105,7 +105,8 @@ id = {res1[0]}
     def gameCall(self, event):
         """Событие вызова игры"""
         user_id = event.obj.user_id
-        self.bot.sendKeyboard(user_id, self.name, "Coming soon")
+        self.bot.sendKeyboard(user_id, "main_game_start", "Запускаю игру")
+        self.setCurrentKeyboard(event, "main_game_start")
 
     def exitCall(self, event):
         """Выход пользователя из системы"""
@@ -155,7 +156,108 @@ class KeyboardMainMenuUnsub(KeyboardMainMenu):
         self.db.connection.commit()
         self.bot.sendKeyboard(event.obj.user_id, "main_sub_keyboard", "Вы отписались от новостей группы")
         self.setCurrentKeyboard(event, "main_sub_keyboard")
-        
+
+
+#
+#   Игра
+#
+
+class GameKeyboardMenu(KeyboardMain):
+    """Клавиатура для игры"""
+    def __init__(self, bot, db, game):
+        super().__init__(bot, db)
+
+        self.calls = {
+            "new_call" : self.newGameCall,
+            "continue_call" : self.continueCall,
+            "back_call" : self.backCall
+        }
+
+        self.game  = game
+        self.name = "main_game_start"
+        self.keyboard.add_callback_button(label='Новая игра', color=VkKeyboardColor.POSITIVE, payload={"type" : "new_call"})
+        self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='Продолжить игру', color=VkKeyboardColor.PRIMARY, payload={"type": "continue_call"})
+        self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='В меню', color=VkKeyboardColor.NEGATIVE, payload={"type": "back_call"})
+
+    def newGameCall(self, event):
+        """Событие новой игры"""
+        user_id = event.obj.user_id
+        self.bot.sendKeyboard(user_id, "main_game", "Начинаю игру")
+        self.game.gameManager(user_id, "newgame")
+        self.setCurrentKeyboard(event, "main_game")
+
+    def continueCall(self, event):
+        """Событие продолжения игры"""
+        user_id = event.obj.user_id
+        self.bot.sendKeyboard(user_id, "main_game_start", "Продолжаю игру")
+        self.setCurrentKeyboard(event, "main_game_start")
+
+    def backCall(self, event):
+        """Событие возврата в меню"""
+        user_id = event.obj.user_id
+        keyboard = self.getMainMenuKeyboard(event)
+        self.bot.sendKeyboard(user_id, keyboard, "Возвращаю в меню")
+        self.setCurrentKeyboard(event, keyboard)
+
+
+class GameKeyboard(KeyboardMain):
+    """Клавиатура для игры"""
+    def __init__(self, bot, db, game):
+        super().__init__(bot, db)
+
+        self.calls = {
+            "forward_call" : self.forwardCall,
+            "left_call" : self.leftCall,
+            "right_call" : self.rightCall,
+            "stay_call" : self.stayCall,
+            "back_call" : self.backCall,
+            "menu_call" : self.menuCall
+        }
+
+        self.game  = game
+        self.name = "main_game"
+        self.keyboard.add_callback_button(label='Вверх', color=VkKeyboardColor.POSITIVE, payload={"type" : "forward_call"})
+        self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='Налево', color=VkKeyboardColor.PRIMARY, payload={"type": "left_call"})
+        self.keyboard.add_callback_button(label='Направо', color=VkKeyboardColor.PRIMARY, payload={"type": "right_call"})
+        self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='Вниз', color=VkKeyboardColor.POSITIVE, payload={"type": "back_call"})
+        self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='Прислушаться', color=VkKeyboardColor.PRIMARY, payload={"type": "stay_call"})
+        self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='В меню', color=VkKeyboardColor.NEGATIVE, payload={"type": "menu_call"})
+
+    def forwardCall(self, event):
+        user_id = event.obj.user_id
+        self.bot.sendKeyboard(user_id, "main_game", "Идем вверх")
+        self.game.gameManager(user_id, "move", "up")
+
+    def leftCall(self, event):
+        user_id = event.obj.user_id
+        self.bot.sendKeyboard(user_id, "main_game", "Идем налево")
+        self.game.gameManager(user_id, "move", "left")
+
+    def rightCall(self, event):
+        user_id = event.obj.user_id
+        self.bot.sendKeyboard(user_id, "main_game", "Идем направо")
+        self.game.gameManager(user_id, "move", "right")
+
+    def stayCall(self, event):
+        user_id = event.obj.user_id
+        self.bot.sendKeyboard(user_id, "main_game", "Остаемся на месте")
+        self.game.gameManager(user_id, "stay")
+
+    def backCall(self, event):
+        user_id = event.obj.user_id
+        self.bot.sendKeyboard(user_id, "main_game", "Идем вниз")
+        self.game.gameManager(user_id, "move", "down")
+
+    def menuCall(self, event):
+        user_id = event.obj.user_id
+        self.bot.sendKeyboard(user_id, "main_game_start", "Возвращаю в меню")
+        self.setCurrentKeyboard(event, "main_game_start")
 
 #
 # Авторизация
@@ -213,13 +315,13 @@ class KeyboardMainEditProfile(KeyboardMain):
 
     def editNameCall(self, event):
         """Редактирование имени пользователя"""
-        self.bot.writeMsg(event.obj.user_id, "Введи свое полное имя")
+        self.bot.sendKeyboard(event.obj.user_id, "cancel_keyboard", "Введи свое полное имя")
         self.db.update("Pending", "act", "'EDIT_NAME'", f"WHERE user_id = '{event.obj.user_id}'")
         self.db.connection.commit()
 
     def editGroupCall(self, event):
         """Редактирование группы пользователя"""
-        self.bot.writeMsg(event.obj.user_id, "Введи свою группу")
+        self.bot.sendKeyboard(event.obj.user_id, "cancel_keyboard", "Введи шифр группы")
         self.db.update("Pending", "act", "'EDIT_CODE'", f"WHERE user_id = '{event.obj.user_id}'")
         self.db.connection.commit()
 
@@ -242,3 +344,8 @@ class KeyboardEditProfile(KeyboardMessage):
     def __init__(self, bot, db):
         super().__init__(bot, db)
         self.keyboard.add_callback_button(label='Редактировать профиль 📝', color=VkKeyboardColor.PRIMARY, payload={"type": "info_edit_call"})
+
+class CancelLastInput(KeyboardMessage):
+    def __init__(self, bot, db):
+        super().__init__(bot, db)
+        self.keyboard.add_callback_button(label='Отменить', color=VkKeyboardColor.NEGATIVE, payload={"type": "cancel_call", "exception": "1"})

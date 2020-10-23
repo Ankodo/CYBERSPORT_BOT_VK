@@ -1,5 +1,6 @@
 from bot import *
 from db import DataBase
+from game import Game
 from keyboards import *
 
 # API
@@ -9,6 +10,8 @@ id = "199323686"
 db = DataBase("students.db")
 
 bot = Bot(token, id)
+game = Game(bot, db)
+
 msgHandler = MessageHandler(bot, db)
 buttHandler = ButtonHandler(bot, db)
 
@@ -24,7 +27,10 @@ Keyboards = {
         "main_sub_keyboard": KeyboardMainMenuSub(bot, db),
         "main_uns_keyboard": KeyboardMainMenuUnsub(bot, db),
         "main_info_edit_keyboard" : KeyboardMainEditProfile(bot, db),
-        "inforamtion_edit_keyboard": KeyboardEditProfile(bot, db)
+        "main_game_start" : GameKeyboardMenu(bot, db, game),
+        "main_game" : GameKeyboard(bot, db, game),
+        "inforamtion_edit_keyboard": KeyboardEditProfile(bot, db),
+        "cancel_keyboard": CancelLastInput(bot, db)
 }
 
 bot.setKeyboards(Keyboards)
