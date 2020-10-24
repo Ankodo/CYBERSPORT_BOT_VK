@@ -228,13 +228,23 @@ class Bot:
         print(f"Пользователь {event.obj.user_id} запретил сообщения.")
 
     def writeMsg(self, user_id, message):
+        """Отправить пользователю сообщение"""
         self.session.method('messages.send', {'user_id': user_id, 'message': message, "random_id":get_random_id()})
 
     def attachmentMsg(self, user_id, attachment_type, attachment_id):
+        """Отправить пользователю изображение"""
         ownid = "-199323686"
         self.session.method('messages.send', {'user_id': user_id, "random_id":get_random_id(), "attachment":f"{attachment_type}{ownid}_{attachment_id}"})
 
+    def repostPost(self, user_id, id):
+        """Отправить пользователю запись"""
+        ownid = "-199323686"
+        #   event.obj.user_id
+        #   event.obj.id
+        self.attachmentMsg(user_id, "wall", id)
+
     def sendKeyboard(self, from_id, keyboard, text=""):
+        """Отправить пользователю клавиатуру"""
         if keyboard in self.keyboards:
             if text != "":
                 self.vk.messages.send(
