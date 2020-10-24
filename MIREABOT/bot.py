@@ -238,9 +238,6 @@ class Bot:
 
     def repostPost(self, user_id, id):
         """Отправить пользователю запись"""
-        ownid = "-199323686"
-        #   event.obj.user_id
-        #   event.obj.id
         self.attachmentMsg(user_id, "wall", id)
 
     def sendKeyboard(self, from_id, keyboard, text=""):

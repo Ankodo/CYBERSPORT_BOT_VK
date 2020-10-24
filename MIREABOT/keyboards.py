@@ -126,6 +126,8 @@ class KeyboardMainMenuSub(KeyboardMainMenu):
         self.keyboard.add_line()
         self.keyboard.add_callback_button(label='Мини игра', color=VkKeyboardColor.PRIMARY, payload={"type": "game_call"})
         self.keyboard.add_line()
+        self.keyboard.add_openlink_button('Управление подписками на сообщения', 'https://vk.com/public199323686?w=app5898182_-199323686')
+        self.keyboard.add_line()
         self.keyboard.add_callback_button(label='Выход', color=VkKeyboardColor.NEGATIVE, payload={"type": "exit_call"})
 
     def subCall(self, event):
@@ -146,7 +148,9 @@ class KeyboardMainMenuUnsub(KeyboardMainMenu):
         self.keyboard.add_line()
         self.keyboard.add_callback_button(label='Мини игра', color=VkKeyboardColor.PRIMARY, payload={"type": "game_call"})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Отписаться от новостей', color=VkKeyboardColor.NEGATIVE, payload={"type" : "unsub_call"})
+        self.keyboard.add_callback_button(label='Отписаться от новостей', color=VkKeyboardColor.PRIMARY, payload={"type" : "unsub_call"})
+        self.keyboard.add_line()
+        self.keyboard.add_openlink_button('Управление подписками на сообщения', 'https://vk.com/public199323686?w=app5898182_-199323686')
         self.keyboard.add_line()
         self.keyboard.add_callback_button(label='Выход', color=VkKeyboardColor.NEGATIVE, payload={"type": "exit_call"})
 
