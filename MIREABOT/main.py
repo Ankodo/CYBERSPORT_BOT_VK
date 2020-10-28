@@ -10,7 +10,7 @@ id = "199323686"
 
 db = DataBase("students.db")
 
-bot = Bot(token, id)
+bot = Bot(token, id, db)
 game = Game(bot, db)
 
 group = Group(bot, db)
@@ -39,16 +39,13 @@ Keyboards = {
 bot.setKeyboards(Keyboards)
 
 def checkEvent(event):
-        print("НОВЫЙ ЭВЕНТ")
-        print(event)
-        print(event.type)
+        # print("НОВЫЙ ЭВЕНТ")
+        # print(event)
+        # print(event.type)
         if event.type in Events:
-            print("ЭВЕНТ НАЙДЕН В СПИСКЕ")
             Events[event.type](event)
 
 # Основной цикл
 print("Бот запущен")
-print(Events)
 for event in bot.longpoll.listen():
-    print(event)
     checkEvent(event)

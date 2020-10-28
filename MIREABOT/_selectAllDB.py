@@ -7,3 +7,6 @@ print(db.cursor.fetchall())
 
 db.select("Pending")
 print(db.cursor.fetchall())
+
+db.select("GameMaze")
+print(db.cursor.fetchall())

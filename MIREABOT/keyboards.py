@@ -20,12 +20,6 @@ class KeyBoard:
         else:
             return False
 
-    def setCurrentKeyboard(self, event, keyboard):
-        """Установить клавиатуру в бд"""
-        user_id = event.obj.user_id
-        self.db.update("Students", "current_keyboard", f"'{keyboard}'", f"WHERE user_id='{user_id}'")
-        self.db.connection.commit()
-
     def getMainMenuKeyboard(self, event):
         user_id = event.obj.user_id
         self.db.select("Students", "subscribed", f"WHERE user_id='{user_id}'")
@@ -93,7 +87,6 @@ id = {res1[0]}
 Имя - {res2[0]}
 Группа - {res3[0]}
 """
-        print(text)
         self.bot.sendKeyboard(user_id, "inforamtion_edit_keyboard", text)
         self.bot.sendKeyboard(user_id, self.name)
 
@@ -105,13 +98,11 @@ id = {res1[0]}
     def gameCall(self, event):
         """Событие вызова игры"""
         user_id = event.obj.user_id
-        self.bot.sendKeyboard(user_id, "main_game_start", "Запускаю игру")
-        self.setCurrentKeyboard(event, "main_game_start")
+        self.bot.sendKeyboard(user_id, "main_game_start", "Запускаю игру", True)
 
     def exitCall(self, event):
         """Выход пользователя из системы"""
-        self.bot.sendKeyboard(event.obj.user_id, "main_login_keyboard", "Удачи! 🐉")
-        self.setCurrentKeyboard(event, "main_login_keyboard")
+        self.bot.sendKeyboard(event.obj.user_id, "main_login_keyboard", "Удачи! 🐉", True)
 
 
 class KeyboardMainMenuSub(KeyboardMainMenu):
@@ -134,8 +125,7 @@ class KeyboardMainMenuSub(KeyboardMainMenu):
         """Подписаться на новости"""
         self.db.update("Students", "subscribed", "'1'", f"WHERE user_id = '{event.obj.user_id}'")
         self.db.connection.commit()
-        self.bot.sendKeyboard(event.obj.user_id, "main_uns_keyboard", "Вы подписались на новости группы")
-        self.setCurrentKeyboard(event, "main_uns_keyboard")
+        self.bot.sendKeyboard(event.obj.user_id, "main_uns_keyboard", "Вы подписались на новости группы", True)
 
 
 class KeyboardMainMenuUnsub(KeyboardMainMenu):
@@ -158,8 +148,7 @@ class KeyboardMainMenuUnsub(KeyboardMainMenu):
         """Отписаться от новостей"""
         self.db.update("Students", "subscribed", "'0'", f"WHERE user_id = '{event.obj.user_id}'")
         self.db.connection.commit()
-        self.bot.sendKeyboard(event.obj.user_id, "main_sub_keyboard", "Вы отписались от новостей группы")
-        self.setCurrentKeyboard(event, "main_sub_keyboard")
+        self.bot.sendKeyboard(event.obj.user_id, "main_sub_keyboard", "Вы отписались от новостей группы", True)
 
 
 #
@@ -188,22 +177,23 @@ class GameKeyboardMenu(KeyboardMain):
     def newGameCall(self, event):
         """Событие новой игры"""
         user_id = event.obj.user_id
-        self.bot.sendKeyboard(user_id, "main_game", "Начинаю игру")
+        self.bot.sendKeyboard(user_id, "main_game", "Начинаю игру", True)
         self.game.gameManager(user_id, "newgame")
-        self.setCurrentKeyboard(event, "main_game")
 
     def continueCall(self, event):
         """Событие продолжения игры"""
         user_id = event.obj.user_id
-        self.bot.sendKeyboard(user_id, "main_game_start", "Продолжаю игру")
-        self.setCurrentKeyboard(event, "main_game_start")
+        self.db.select("GameMaze", "m_coords", f"WHERE user_id='{user_id}'")
+        if self.db.cursor.fetchone() != None:
+            self.bot.sendKeyboard(user_id, "main_game", "Продолжаю игру", True)
+        else:
+            self.bot.sendKeyboard(user_id, "main_game_start", "Сохраненной игры не найдено", True)
 
     def backCall(self, event):
         """Событие возврата в меню"""
         user_id = event.obj.user_id
         keyboard = self.getMainMenuKeyboard(event)
-        self.bot.sendKeyboard(user_id, keyboard, "Возвращаю в меню")
-        self.setCurrentKeyboard(event, keyboard)
+        self.bot.sendKeyboard(user_id, keyboard, "Возвращаю в меню", True)
 
 
 class GameKeyboard(KeyboardMain):
@@ -260,8 +250,7 @@ class GameKeyboard(KeyboardMain):
 
     def menuCall(self, event):
         user_id = event.obj.user_id
-        self.bot.sendKeyboard(user_id, "main_game_start", "Возвращаю в меню")
-        self.setCurrentKeyboard(event, "main_game_start")
+        self.bot.sendKeyboard(user_id, "main_game_start", "Возвращаю в меню", True)
 
 #
 # Авторизация
@@ -281,19 +270,15 @@ class KeyboardLogin(KeyboardMain):
         """Событие вызова авторизации"""
         # NOTE: Лучше заменить на MINI APPS
         user_id = event.obj.user_id
-        self.bot.writeMsg(user_id, "Поиск в базе")
         self.db.select("Students", "user_id", f"WHERE user_id='{user_id}' AND full_name IS NOT NULL")
         res = self.db.cursor.fetchone()
-        print("наш ")
-        print(res)
         if res == None:
             self.bot.writeMsg(user_id, "Для начала введи свое полное имя")
             self.db.insert("Pending", "user_id, act", f"'{user_id}', 'REGISTER_NAME'")
             self.db.connection.commit()
         else:
             keyboard = self.getMainMenuKeyboard(event)
-            self.bot.sendKeyboard(user_id, keyboard, "Вы успешно авторизовались!")
-            self.setCurrentKeyboard(event, keyboard)
+            self.bot.sendKeyboard(user_id, keyboard, "Вы успешно авторизовались!", True)
 
 
 #
@@ -331,16 +316,16 @@ class KeyboardMainEditProfile(KeyboardMain):
 
     def toMenuCall(self, event):
         keyboard = self.getMainMenuKeyboard(event)
-        self.bot.sendKeyboard(event.obj.user_id, keyboard)
-        self.setCurrentKeyboard(event, keyboard)
+        self.bot.sendKeyboard(event.obj.user_id, keyboard, "Возвращаю в меню", True)
 
 
 
 #
 # Побочные кнопки в виде сообщений
 # NOTE: Так как можно привязать только одну ГЛАВНУЮ клавиатуру,
-# Функции для кнопок сообщений будут реализованы в классе 
-# ButtonHandler
+# Функции для кнопок-сообщений будут реализованы в классе 
+# ButtonHandler. Либо можно функции вынести в отдельный класс,
+# и передавать payload туда
 #
 
 

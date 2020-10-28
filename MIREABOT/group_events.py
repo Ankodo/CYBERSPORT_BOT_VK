@@ -7,7 +7,7 @@ class Group:
         self.db = db
 
     def repostToEverybody(self, event):
-        """Отправить всемм подписанным студентам запись"""
+        """Отправить всем подписанным студентам запись"""
         self.db.select("Students", "user_id", "WHERE subscribed = '1'")
         result = self.db.cursor.fetchall()
         for item in result:

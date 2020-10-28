@@ -97,9 +97,7 @@ class Game:
         self.db.delete("GameMaze", f"user_id='{id}'")
         self.db.connection.commit()
         os.remove(f"{id}.txt")
-        self.bot.writeMsg(id, """
-Монстр настигнул Вас. Вы проиграли.
-        """)
+        self.bot.sendKeyboard(id, "main_game_start", "Монстр настигнул Вас. Вы проиграли.", True)
 
     def monster_action(self, id, second_move=False):
         """Ход монстра и проверка коллизии с игроком"""
