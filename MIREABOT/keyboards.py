@@ -1,3 +1,6 @@
+# Потому что питон по умолчанию не копирует, а ссылается на объект, мда
+from copy import deepcopy
+
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 #
@@ -7,6 +10,7 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 class KeyBoard:
     def __init__(self, bot, db):
         self.keyboard = None
+        self.self_building = False
         self.calls = {}
         self.bot = bot
         self.db = db
@@ -19,20 +23,6 @@ class KeyBoard:
             return True
         else:
             return False
-
-    def getMainMenuKeyboard(self, event):
-        user_id = event.obj.user_id
-        self.db.select("Students", "subscribed", f"WHERE user_id='{user_id}'")
-        res = self.db.cursor.fetchone()
-
-        if res != None:
-            if res[0] == '1':
-                return "main_uns_keyboard"
-            else:
-                return "main_sub_keyboard"
-        else:
-            self.bot.writeMsg(event.obj.user_id, "Пожалуйста, отправьте скриншот адмнистраторам.\nОшибка: у пользователя нет статуса о подписке")
-            return "NULL"
 
 
 class KeyboardMessage(KeyBoard):
@@ -63,13 +53,22 @@ class KeyboardMainMenu(KeyboardMain):
             "info_call" : self.infoCall,
             "notes_call" : self.notesCall,
             "game_call" : self.gameCall,
+            "tags_call" : self.tagsCall,
             "exit_call" : self.exitCall
         }
+        self.name = "main_keyboard"
 
-        self.name = None
-
-        self.keyboard.add_callback_button(label='Мой профиль', color=VkKeyboardColor.SECONDARY, payload={"type": "info_call"})       #payload={"type": "show_snackbar", "text": "Ты лох"})
+        self.keyboard.add_callback_button(label='Мой профиль', color=VkKeyboardColor.POSITIVE, payload={"type": "info_call"})       #payload={"type": "show_snackbar", "text": "Ты лох"})
         self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='Мои записи', color=VkKeyboardColor.PRIMARY, payload={"type": "notes_call"})
+        self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='Мини игра', color=VkKeyboardColor.PRIMARY, payload={"type": "game_call"})
+        self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='Управление подписками на сообщения', payload={"type": 'tags_call'})
+        self.keyboard.add_line()
+        self.keyboard.add_openlink_button('Управление подписками на сообщения', 'https://vk.com/public199323686?w=app5898182_-199323686')
+        self.keyboard.add_line()
+        self.keyboard.add_callback_button(label='Выход', color=VkKeyboardColor.NEGATIVE, payload={"type": "exit_call"})
 
     def infoCall(self, event):
         """Событие вызова профиля пользователя"""
@@ -100,55 +99,101 @@ id = {res1[0]}
         user_id = event.obj.user_id
         self.bot.sendKeyboard(user_id, "main_game_start", "Запускаю игру", True)
 
+    def tagsCall(self, event):
+        """Событие вызова подписок"""
+        user_id = event.obj.user_id
+        self.bot.sendKeyboard(user_id, "main_tags_keyboard", "Открываю Ваши подписки", True, True)
+
     def exitCall(self, event):
         """Выход пользователя из системы"""
         self.bot.sendKeyboard(event.obj.user_id, "main_login_keyboard", "Удачи! 🐉", True)
 
 
-class KeyboardMainMenuSub(KeyboardMainMenu):
-    """Главное меню с подпиской"""
+
+#
+#   Клавиатура для управления
+#   Клавиатура самособирается - это статичный класс
+#
+
+
+class KeyboardMainTagsManager(KeyboardMain):
     def __init__(self, bot, db):
         super().__init__(bot, db)
-        self.name = "main_sub_keyboard"
-        self.calls["sub_call"] = self.subCall
-        self.keyboard.add_callback_button(label='Подписаться на новости', color=VkKeyboardColor.POSITIVE, payload={"type" : "sub_call"})
-        self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Мои записи', color=VkKeyboardColor.PRIMARY, payload={"type": "notes_call"})
-        self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Мини игра', color=VkKeyboardColor.PRIMARY, payload={"type": "game_call"})
-        self.keyboard.add_line()
-        self.keyboard.add_openlink_button('Управление подписками на сообщения', 'https://vk.com/public199323686?w=app5898182_-199323686')
-        self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Выход', color=VkKeyboardColor.NEGATIVE, payload={"type": "exit_call"})
+        self.self_building = True
+        self.name = "main_tags_keyboard"
+
+        self.calls = {
+            "sub_call" : self.subCall,
+            "unsub_call" : self.unSubCall,
+            "back_call" : self.backCall
+        }
+
+        self.db.select("Tags")
+        self.tags = list(map(lambda x: x[0], self.db.cursor.fetchall()))
+
+    def build(self, user_id):
+        """Событие получения подписок"""
+        keyboard = deepcopy(self.keyboard)
+        self.db.select("Subscribes", "tag_id", f"WHERE user_id='{user_id}'")
+        sub_tags = list(map(lambda x: x[0], self.db.cursor.fetchall()))
+
+        for tag in self.tags:
+            if tag not in sub_tags:
+                keyboard.add_callback_button(label=f"Подписка на {tag}",
+                color=VkKeyboardColor.POSITIVE, payload={"type": "sub_call", "tag": f"{tag}"})
+                keyboard.add_line()
+
+        for tag in sub_tags:
+            keyboard.add_callback_button(label=f"Отписка от {tag}",
+             color=VkKeyboardColor.PRIMARY, payload={"type": "unsub_call", "tag": f"{tag}"})
+            keyboard.add_line()
+
+        keyboard.add_callback_button(label=f"В меню",
+                color=VkKeyboardColor.NEGATIVE, payload={"type": "back_call"})
+
+        return keyboard
 
     def subCall(self, event):
-        """Подписаться на новости"""
-        self.db.update("Students", "subscribed", "'1'", f"WHERE user_id = '{event.obj.user_id}'")
-        self.db.connection.commit()
-        self.bot.sendKeyboard(event.obj.user_id, "main_uns_keyboard", "Вы подписались на новости группы", True)
+        """Подписаться на тэг"""
+        user_id = event.obj.user_id
+        tag = event.obj.payload.get('tag')
+        message = f"Вы подписались на {tag}"
 
+        self.db.select("Subscribes", "tag_id", f"WHERE user_id='{user_id}'")
+        sub_tags = list(map(lambda x: x[0], self.db.cursor.fetchall()))
 
-class KeyboardMainMenuUnsub(KeyboardMainMenu):
-    """Главное меню с отпиской"""
-    def __init__(self, bot, db):
-        super().__init__(bot, db)
-        self.name = "main_uns_keyboard"
-        self.calls["unsub_call"] = self.unsubCall
-        self.keyboard.add_callback_button(label='Мои записи', color=VkKeyboardColor.PRIMARY, payload={"type": "notes_call"})
-        self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Мини игра', color=VkKeyboardColor.PRIMARY, payload={"type": "game_call"})
-        self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Отписаться от новостей', color=VkKeyboardColor.PRIMARY, payload={"type" : "unsub_call"})
-        self.keyboard.add_line()
-        self.keyboard.add_openlink_button('Управление подписками на сообщения', 'https://vk.com/public199323686?w=app5898182_-199323686')
-        self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Выход', color=VkKeyboardColor.NEGATIVE, payload={"type": "exit_call"})
+        if tag not in sub_tags:
+            self.db.insert("Subscribes", "user_id, tag_id", f"'{user_id}', '{tag}'")
+            self.db.connection.commit()
+        else:
+            # А вдруг баг
+            message = f"Вы уже подписаны на {tag}"
 
-    def unsubCall(self, event):
-        """Отписаться от новостей"""
-        self.db.update("Students", "subscribed", "'0'", f"WHERE user_id = '{event.obj.user_id}'")
-        self.db.connection.commit()
-        self.bot.sendKeyboard(event.obj.user_id, "main_sub_keyboard", "Вы отписались от новостей группы", True)
+        self.bot.sendKeyboard(user_id, "main_tags_keyboard", message, True, True)
+
+    def unSubCall(self, event):
+        """Отписаться от тэга"""
+        user_id = event.obj.user_id
+        tag = event.obj.payload.get('tag')
+        message = f"Вы отписались от {tag}"
+
+        self.db.select("Subscribes", "tag_id", f"WHERE user_id='{user_id}'")
+        sub_tags = list(map(lambda x: x[0], self.db.cursor.fetchall()))
+
+        if tag in sub_tags:
+            self.db.delete("Subscribes", f"user_id='{user_id}' AND tag_id='{tag}'")
+            self.db.connection.commit()
+        else:
+            # А вдруг баг
+            message = f"Вы уже отписались от {tag}"
+
+        
+        self.bot.sendKeyboard(user_id, "main_tags_keyboard", message, True, True)
+
+    def backCall(self, event):
+        """Событие возврата в меню"""
+        user_id = event.obj.user_id
+        self.bot.sendKeyboard(user_id, "main_keyboard", "Возвращаю в меню", True)
 
 
 #
@@ -192,8 +237,7 @@ class GameKeyboardMenu(KeyboardMain):
     def backCall(self, event):
         """Событие возврата в меню"""
         user_id = event.obj.user_id
-        keyboard = self.getMainMenuKeyboard(event)
-        self.bot.sendKeyboard(user_id, keyboard, "Возвращаю в меню", True)
+        self.bot.sendKeyboard(user_id, "main_keyboard", "Возвращаю в меню", True)
 
 
 class GameKeyboard(KeyboardMain):
@@ -264,7 +308,7 @@ class KeyboardLogin(KeyboardMain):
         self.calls = {
             "login_call" : self.loginCall,
         }
-        self.keyboard.add_callback_button(label='Заполнить профиль', color=VkKeyboardColor.POSITIVE, payload={"type": "login_call"})
+        self.keyboard.add_callback_button(label='Авторизация', color=VkKeyboardColor.POSITIVE, payload={"type": "login_call"})
 
     def loginCall(self, event):
         """Событие вызова авторизации"""
@@ -277,8 +321,7 @@ class KeyboardLogin(KeyboardMain):
             self.db.insert("Pending", "user_id, act", f"'{user_id}', 'REGISTER_NAME'")
             self.db.connection.commit()
         else:
-            keyboard = self.getMainMenuKeyboard(event)
-            self.bot.sendKeyboard(user_id, keyboard, "Вы успешно авторизовались!", True)
+            self.bot.sendKeyboard(user_id, "main_keyboard", "Вы успешно авторизовались!", True)
 
 
 #
@@ -315,8 +358,7 @@ class KeyboardMainEditProfile(KeyboardMain):
         self.db.connection.commit()
 
     def toMenuCall(self, event):
-        keyboard = self.getMainMenuKeyboard(event)
-        self.bot.sendKeyboard(event.obj.user_id, keyboard, "Возвращаю в меню", True)
+        self.bot.sendKeyboard(event.obj.user_id, "main_keyboard", "Возвращаю в меню", True)
 
 
 

@@ -34,15 +34,18 @@ class MessageHandler:
         res = self.db.cursor.fetchone()
 
         if res != None:
-            if request in self.MessageCommands: 
-                self.MessageCommands[request](event)
-            elif "!" == request[0]:
-                self.showSimilar(event)
+            if request != None and request != "":
+                if request in self.MessageCommands: 
+                    self.MessageCommands[request](event)
+                elif "!" == request[0]:
+                    self.showSimilar(event)
+                else:
+                    self.checkPending(event)
             else:
-                self.checkPending(event)
+                self.bot.writeMsg(event.obj.message['from_id'], f"Круто, а что это?")
         else:
             self.bot.sendKeyboard(user_id, "main_login_keyboard", """Привет, давай познакомимся! 🐉""")
-            self.db.insert("Students", "user_id, current_keyboard, subscribed", f"'{user_id}', 'main_login_keyboard', '0'")
+            self.db.insert("Students", "user_id, current_keyboard", f"'{user_id}', 'main_login_keyboard'")
             self.db.connection.commit()
 
     def checkPending(self, event):
@@ -68,7 +71,7 @@ class MessageHandler:
         user_id = event.obj.message['from_id']
         self.db.select("Students", "user_id", f"WHERE user_id='{user_id}'")
         res = self.db.cursor.fetchone()
-        self.bot.sendKeyboard(user_id, "main_sub_keyboard", """Держи 🐉""", True)
+        self.bot.sendKeyboard(user_id, "main_keyboard", """Держи 🐉""", True)
 
     ####    РЕГИСТРАЦИЯ    ####
 
@@ -84,7 +87,7 @@ class MessageHandler:
         self.db.update("Students", "code", f"'{event.obj.message['text']}'", f"WHERE user_id = '{event.obj.message['from_id']}'")
         self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{event.obj.message['from_id']}'")
         self.db.connection.commit()
-        self.bot.sendKeyboard(event.obj.message['from_id'], "main_sub_keyboard", "Я запомнил 🐉", True)
+        self.bot.sendKeyboard(event.obj.message['from_id'], "main_keyboard", "Я запомнил 🐉", True)
 
     ####    РЕДАКТИРОВАНИЕ    ####
     def editName(self, event):
@@ -109,7 +112,7 @@ class ButtonHandler:
     def __init__(self, bot, db):
         super().__init__()
         self.ButtonCommands = {
-            #   Кнопки-сfообщения
+            #   Кнопки-сообщения
             "info_edit_call":    self.infoEditCall,
             "cancel_call":       self.cancellCall
         }
@@ -162,7 +165,7 @@ class ButtonHandler:
         res = self.db.cursor.fetchone()
 
         if res == None:
-            self.db.insert("Students", "user_id, current_keyboard, subscribed", f"'{user_id}', 'main_login_keyboard', '0'")
+            self.db.insert("Students", "user_id, current_keyboard", f"'{user_id}', 'main_login_keyboard'")
             self.db.connection.commit()
 
         if not self.checkPending(user_id):
@@ -232,16 +235,21 @@ class Bot:
         self.db.update("Students", "current_keyboard", f"'{keyboard}'", f"WHERE user_id='{id}'")
         self.db.connection.commit()
 
-    def sendKeyboard(self, from_id, keyboard, text="", set_as_current=False):
+    def sendKeyboard(self, from_id, keyboard, text="", set_as_current=False, static=False):
         """Отправить пользователю клавиатуру"""
         if keyboard in self.keyboards:
             if text == "": text = "Выполнено"
             if set_as_current:
                 self.setCurrentKeyboard(from_id, keyboard)
+            if static:
+                keyboard=self.keyboards[keyboard].build(from_id)
+                keyboard = keyboard.get_keyboard()
+            else:
+                keyboard = self.keyboards[keyboard].keyboard.get_keyboard()
             self.vk.messages.send(
                 user_id=from_id,
                 random_id=get_random_id(),
                 peer_id=from_id,
-                keyboard=self.keyboards[keyboard].keyboard.get_keyboard(),
+                keyboard=keyboard,
                 message=text
             )

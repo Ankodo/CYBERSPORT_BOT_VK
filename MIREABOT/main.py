@@ -22,16 +22,16 @@ Events = {
         VkBotEventType.MESSAGE_EVENT : buttHandler.checkCommand,
         VkBotEventType.MESSAGE_ALLOW : bot.newUser,
         VkBotEventType.MESSAGE_DENY : bot.userExit,
-        VkBotEventType.WALL_POST_NEW : group.repostToEverybody
+        VkBotEventType.WALL_POST_NEW : group.postEvent
 }
 
 Keyboards = {
         "main_login_keyboard": KeyboardLogin(bot, db),
-        "main_sub_keyboard": KeyboardMainMenuSub(bot, db),
-        "main_uns_keyboard": KeyboardMainMenuUnsub(bot, db),
+        "main_keyboard": KeyboardMainMenu(bot, db),
         "main_info_edit_keyboard" : KeyboardMainEditProfile(bot, db),
         "main_game_start" : GameKeyboardMenu(bot, db, game),
         "main_game" : GameKeyboard(bot, db, game),
+        "main_tags_keyboard" : KeyboardMainTagsManager(bot, db),
         "inforamtion_edit_keyboard": KeyboardEditProfile(bot, db),
         "cancel_keyboard": CancelLastInput(bot, db)
 }

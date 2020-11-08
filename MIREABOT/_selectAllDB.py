@@ -10,3 +10,9 @@ print(db.cursor.fetchall())
 
 db.select("GameMaze")
 print(db.cursor.fetchall())
+
+db.select("Subscribes")
+print(db.cursor.fetchall())
+
+db.select("Tags")
+print(list(map(lambda x: x[0], db.cursor.fetchall())))
