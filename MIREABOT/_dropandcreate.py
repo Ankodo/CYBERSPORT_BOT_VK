@@ -41,3 +41,5 @@ db.execute("INSERT INTO TAGS VALUES ('#важное'), ('#новости'), ('#�
 #db.execute("INSERT INTO Students VALUES (412536100, 'Шашков Александр Андреевич', 'КМБО-03-20', 'main_sub_keyboard')")
 
 db.connection.commit()
+
+print("БД очищена!")

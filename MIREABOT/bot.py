@@ -1,6 +1,3 @@
-#   TODO: обращаться к классу Клавиатуры для ее установки к бд
-#   self.setCurrentKeyboard(event, keyboard) привязать к функции выше
-
 from vk_api import VkApi
 from datetime import datetime
 from vk_api.utils import get_random_id
@@ -134,7 +131,9 @@ class ButtonHandler:
         user_id = event.obj.user_id
         self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{user_id}'")
         self.db.connection.commit()
-        self.bot.sendKeyboard(user_id, self.getCurrentKeyboard(user_id), "Отменяем ввод")
+        # keyboard = event.obj.payload.get('keyboard')
+        self.bot.sendKeyboard(user_id, "main_keyboard", "Отменяем ввод", True)
+        #self.bot.sendKeyboard(user_id, self.getCurrentKeyboard(user_id), "Отменяем ввод")
 
     #
     #   Обработчик
@@ -144,18 +143,18 @@ class ButtonHandler:
         user_id = event.obj.user_id
         call = event.obj.payload.get('type')
         exception = event.obj.payload.get('exception')
-        keyboard = self.getCurrentKeyboard(user_id)
+        keyboard = event.obj.payload.get('keyboard')
+        # OLD: keyboard = self.getCurrentKeyboard(user_id)
 
         def runEvent():
             if keyboard == None:
-                self.bot.writeMsg(event.obj.user_id, "Пожалуйста, отправьте скриншот адмнистраторам.\nОшибка: клавиатура не привязана к бд") 
-            elif self.bot.keyboards[keyboard].checkCommand(event):
-                # Если функция была найдена и выполнена
-                #self.refresh(user_id, keyboard)
-                pass
-            elif call in self.ButtonCommands:
+                self.bot.writeMsg(event.obj.user_id, "Пожалуйста, отправьте скриншот адмнистраторам.\nОшибка: эвент не привязан к клавиатуре") 
+            elif keyboard == "oneline":
                 # Если это кнопка-сообщение
                 self.ButtonCommands[call](event)
+            elif self.bot.keyboards[keyboard].checkCommand(event):
+                # Если функция была найдена и выполнена
+                pass
             else:
                 # Такого эвента нет
                 self.bot.writeMsg(event.obj.user_id, "Пожалуйста, отправьте скриншот адмнистраторам.\nОшибка: эвент не найден") 

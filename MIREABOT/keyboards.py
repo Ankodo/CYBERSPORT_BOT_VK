@@ -58,17 +58,17 @@ class KeyboardMainMenu(KeyboardMain):
         }
         self.name = "main_keyboard"
 
-        self.keyboard.add_callback_button(label='Мой профиль', color=VkKeyboardColor.POSITIVE, payload={"type": "info_call"})       #payload={"type": "show_snackbar", "text": "Ты лох"})
+        self.keyboard.add_callback_button(label='Мой профиль', color=VkKeyboardColor.POSITIVE, payload={"type": "info_call", "keyboard": self.name})       #payload={"type": "show_snackbar", "text": "Ты лох"})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Мои записи', color=VkKeyboardColor.PRIMARY, payload={"type": "notes_call"})
+        self.keyboard.add_callback_button(label='Мои записи', color=VkKeyboardColor.PRIMARY, payload={"type": "notes_call", "keyboard": self.name})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Мини игра', color=VkKeyboardColor.PRIMARY, payload={"type": "game_call"})
+        self.keyboard.add_callback_button(label='Мини игра', color=VkKeyboardColor.PRIMARY, payload={"type": "game_call", "keyboard": self.name})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Управление подписками на сообщения', payload={"type": 'tags_call'})
+        self.keyboard.add_callback_button(label='Управление подписками на сообщения', payload={"type": 'tags_call', "keyboard": self.name})
         self.keyboard.add_line()
         self.keyboard.add_openlink_button('Управление подписками на сообщения', 'https://vk.com/public199323686?w=app5898182_-199323686')
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Выход', color=VkKeyboardColor.NEGATIVE, payload={"type": "exit_call"})
+        self.keyboard.add_callback_button(label='Выход', color=VkKeyboardColor.NEGATIVE, payload={"type": "exit_call", "keyboard": self.name})
 
     def infoCall(self, event):
         """Событие вызова профиля пользователя"""
@@ -140,16 +140,16 @@ class KeyboardMainTagsManager(KeyboardMain):
         for tag in self.tags:
             if tag not in sub_tags:
                 keyboard.add_callback_button(label=f"Подписка на {tag}",
-                color=VkKeyboardColor.POSITIVE, payload={"type": "sub_call", "tag": f"{tag}"})
+                color=VkKeyboardColor.POSITIVE, payload={"type": "sub_call", "tag": f"{tag}", "keyboard": self.name})
                 keyboard.add_line()
 
         for tag in sub_tags:
             keyboard.add_callback_button(label=f"Отписка от {tag}",
-             color=VkKeyboardColor.PRIMARY, payload={"type": "unsub_call", "tag": f"{tag}"})
+             color=VkKeyboardColor.PRIMARY, payload={"type": "unsub_call", "tag": f"{tag}", "keyboard": self.name})
             keyboard.add_line()
 
         keyboard.add_callback_button(label=f"В меню",
-                color=VkKeyboardColor.NEGATIVE, payload={"type": "back_call"})
+                color=VkKeyboardColor.NEGATIVE, payload={"type": "back_call", "keyboard": self.name})
 
         return keyboard
 
@@ -213,11 +213,11 @@ class GameKeyboardMenu(KeyboardMain):
 
         self.game  = game
         self.name = "main_game_start"
-        self.keyboard.add_callback_button(label='Новая игра', color=VkKeyboardColor.POSITIVE, payload={"type" : "new_call"})
+        self.keyboard.add_callback_button(label='Новая игра', color=VkKeyboardColor.POSITIVE, payload={"type" : "new_call", "keyboard": self.name})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Продолжить игру', color=VkKeyboardColor.PRIMARY, payload={"type": "continue_call"})
+        self.keyboard.add_callback_button(label='Продолжить игру', color=VkKeyboardColor.PRIMARY, payload={"type": "continue_call", "keyboard": self.name})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='В меню', color=VkKeyboardColor.NEGATIVE, payload={"type": "back_call"})
+        self.keyboard.add_callback_button(label='В меню', color=VkKeyboardColor.NEGATIVE, payload={"type": "back_call", "keyboard": self.name})
 
     def newGameCall(self, event):
         """Событие новой игры"""
@@ -256,16 +256,16 @@ class GameKeyboard(KeyboardMain):
 
         self.game  = game
         self.name = "main_game"
-        self.keyboard.add_callback_button(label='Вверх', color=VkKeyboardColor.POSITIVE, payload={"type" : "forward_call"})
+        self.keyboard.add_callback_button(label='Вверх', color=VkKeyboardColor.POSITIVE, payload={"type" : "forward_call", "keyboard": self.name})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Налево', color=VkKeyboardColor.PRIMARY, payload={"type": "left_call"})
-        self.keyboard.add_callback_button(label='Направо', color=VkKeyboardColor.PRIMARY, payload={"type": "right_call"})
+        self.keyboard.add_callback_button(label='Налево', color=VkKeyboardColor.PRIMARY, payload={"type": "left_call", "keyboard": self.name})
+        self.keyboard.add_callback_button(label='Направо', color=VkKeyboardColor.PRIMARY, payload={"type": "right_call", "keyboard": self.name})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Вниз', color=VkKeyboardColor.POSITIVE, payload={"type": "back_call"})
+        self.keyboard.add_callback_button(label='Вниз', color=VkKeyboardColor.POSITIVE, payload={"type": "back_call", "keyboard": self.name})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Прислушаться', color=VkKeyboardColor.PRIMARY, payload={"type": "stay_call"})
+        self.keyboard.add_callback_button(label='Прислушаться', color=VkKeyboardColor.PRIMARY, payload={"type": "stay_call", "keyboard": self.name})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='В меню', color=VkKeyboardColor.NEGATIVE, payload={"type": "menu_call"})
+        self.keyboard.add_callback_button(label='В меню', color=VkKeyboardColor.NEGATIVE, payload={"type": "menu_call", "keyboard": self.name})
 
     def forwardCall(self, event):
         user_id = event.obj.user_id
@@ -308,7 +308,7 @@ class KeyboardLogin(KeyboardMain):
         self.calls = {
             "login_call" : self.loginCall,
         }
-        self.keyboard.add_callback_button(label='Авторизация', color=VkKeyboardColor.POSITIVE, payload={"type": "login_call"})
+        self.keyboard.add_callback_button(label='Авторизация', color=VkKeyboardColor.POSITIVE, payload={"type": "login_call", "keyboard": self.name})
 
     def loginCall(self, event):
         """Событие вызова авторизации"""
@@ -339,11 +339,11 @@ class KeyboardMainEditProfile(KeyboardMain):
             "info_edit_group_call" : self.editGroupCall,
             "to_menu_call" : self.toMenuCall
         }
-        self.keyboard.add_callback_button(label='Редактировать имя', color=VkKeyboardColor.PRIMARY , payload={"type": "info_edit_name_call"})
+        self.keyboard.add_callback_button(label='Редактировать имя', color=VkKeyboardColor.PRIMARY , payload={"type": "info_edit_name_call", "keyboard": self.name})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Редактировать группу', color=VkKeyboardColor.PRIMARY , payload={"type": "info_edit_group_call"})
+        self.keyboard.add_callback_button(label='Редактировать группу', color=VkKeyboardColor.PRIMARY , payload={"type": "info_edit_group_call", "keyboard": self.name})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='В меню', color=VkKeyboardColor.PRIMARY , payload={"type": "to_menu_call"})
+        self.keyboard.add_callback_button(label='В меню', color=VkKeyboardColor.PRIMARY , payload={"type": "to_menu_call", "keyboard": self.name})
 
     def editNameCall(self, event):
         """Редактирование имени пользователя"""
@@ -374,9 +374,9 @@ class KeyboardMainEditProfile(KeyboardMain):
 class KeyboardEditProfile(KeyboardMessage):
     def __init__(self, bot, db):
         super().__init__(bot, db)
-        self.keyboard.add_callback_button(label='Редактировать профиль 📝', color=VkKeyboardColor.PRIMARY, payload={"type": "info_edit_call"})
+        self.keyboard.add_callback_button(label='Редактировать профиль 📝', color=VkKeyboardColor.PRIMARY, payload={"type": "info_edit_call", "keyboard": "oneline"})
 
 class CancelLastInput(KeyboardMessage):
     def __init__(self, bot, db):
         super().__init__(bot, db)
-        self.keyboard.add_callback_button(label='Отменить', color=VkKeyboardColor.NEGATIVE, payload={"type": "cancel_call", "exception": "1"})
+        self.keyboard.add_callback_button(label='Отменить', color=VkKeyboardColor.NEGATIVE, payload={"type": "cancel_call", "exception": "1", "keyboard": "oneline"})
