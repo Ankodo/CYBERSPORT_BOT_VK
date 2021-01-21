@@ -54,7 +54,7 @@ class MessageHandler:
             if res in self.PendingStats:
                 self.PendingStats[res](event)
             else:
-                self.bot.writeMsg(event.obj.message['from_id'], f"Ошибка: {res} не найден. Отправьте это сообщение администраторам группы")
+                self.bot.writeMsg(event.obj.message['from_id'], f"Ошибка: {event.obj.message['text']} не найден. Отправьте это сообщение администраторам группы")
 
     ####    КОМАНДЫ    #### 
 

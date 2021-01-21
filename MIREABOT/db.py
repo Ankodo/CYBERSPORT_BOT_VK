@@ -8,7 +8,8 @@ class DataBase:
         print("База данных подключена")
 
     def file_connect(self, file):
-        self.connection = sqlite3.connect(file)
+        # screw thread check!!!!
+        self.connection = sqlite3.connect(file, check_same_thread=False)
         self.cursor = self.connection.cursor()
 
     def execute(self, com):

@@ -1,3 +1,5 @@
+from threading import Thread
+
 from bot import *
 from db import DataBase
 from game import Game
@@ -41,11 +43,16 @@ bot.setKeyboards(Keyboards)
 def checkEvent(event):
         # print("НОВЫЙ ЭВЕНТ")
         # print(event)
-        # print(event.type)
+        print(event.type)
         if event.type in Events:
             Events[event.type](event)
 
 # Основной цикл
 print("Бот запущен")
 for event in bot.longpoll.listen():
-    checkEvent(event)
+    try:
+        thread = Thread(target=checkEvent, args=(event,) )
+        thread.start()
+        thread.join()
+    except:
+        print ("Error: unable to start thread:", err)
