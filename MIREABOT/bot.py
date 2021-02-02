@@ -41,7 +41,8 @@ class MessageHandler:
             else:
                 self.bot.writeMsg(event.obj.message['from_id'], f"Круто, а что это?")
         else:
-            self.bot.sendKeyboard(user_id, "main_login_keyboard", """Привет, давай познакомимся! 🐉""")
+            #self.bot.sendKeyboard(user_id, "main_login_keyboard", """Привет, давай познакомимся! 🐉""")
+            self.bot.sendKeyboard(user_id, "main_keyboard", """Привет 🐉""")
             self.db.insert("Students", "user_id, current_keyboard", f"'{user_id}', 'main_login_keyboard'")
             self.db.connection.commit()
 
@@ -81,7 +82,7 @@ class MessageHandler:
         self.db.update("Students", "full_name", f"'{event.obj.message['text']}'", f"WHERE user_id = '{event.obj.message['from_id']}'")
         self.db.update("Pending", "act", "'REGISTER_CODE'", f"WHERE user_id = '{event.obj.message['from_id']}'")
         self.db.connection.commit()
-        self.bot.writeMsg(event.obj.message['from_id'], "Рад познакомиться. 🐉 Теперь введи шифр свое группы")
+        self.bot.writeMsg(event.obj.message['from_id'], "Рад познакомиться. 🐉 Теперь введи шифр своей группы")
 
     def registerCode(self, event):
         # Регистрируем код
@@ -128,7 +129,8 @@ class ButtonHandler:
     def infoEditCall(self, event):
         """Пользователь нажал на кнопку редактирования профиля"""
         user_id = event.obj.user_id
-        self.bot.sendKeyboard(user_id, "main_info_edit_keyboard", "Меню редактирования профиля", True)
+        #self.bot.sendKeyboard(user_id, "main_info_edit_keyboard", "Меню редактирования профиля", True)
+        self.bot.sendKeyboard(user_id, "main_keyboard", "Uh uh uh! You didn't say the magic word!", True)
 
     def cancellCall(self, event):
         """Пользователь отменил ввод данных"""
