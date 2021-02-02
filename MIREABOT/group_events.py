@@ -4,12 +4,13 @@ import re
 
 class Group:
     """Методы для управления событиями группы"""
-    def __init__(self, bot, db):
+    def __init__(self, bot, db, miniapps_token):
         super().__init__()
 
         self.bot = bot
         self.db = db
         self.id = self.bot.id
+        self.token = miniapps_token
 
         self.db.select("Tags")
         tags = self.db.cursor.fetchall()
@@ -69,7 +70,7 @@ class Group:
 
         header = {"Content-Type":"application/json"}
 
-        res = query("https://broadcast.vkforms.ru/api/v2/broadcast?token=api_83359_SgPRwkgwgnMLcCqPyVeTxd4n", "POST", header, data)
+        res = query(self.token, "POST", header, data)
         print(res)
 
     def repostToList(self, note_id, user_list):

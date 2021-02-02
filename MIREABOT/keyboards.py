@@ -64,11 +64,11 @@ class KeyboardMainMenu(KeyboardMain):
         self.keyboard.add_line()
         self.keyboard.add_callback_button(label='Мини игра', color=VkKeyboardColor.PRIMARY, payload={"type": "game_call", "keyboard": self.name})
         self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Управление подписками на сообщения', payload={"type": 'tags_call', "keyboard": self.name})
-        self.keyboard.add_line()
-        self.keyboard.add_openlink_button('Управление подписками на сообщения', 'https://vk.com/public199323686?w=app5898182_-199323686')
-        self.keyboard.add_line()
-        self.keyboard.add_callback_button(label='Выход', color=VkKeyboardColor.NEGATIVE, payload={"type": "exit_call", "keyboard": self.name})
+        # self.keyboard.add_callback_button(label='Управление подписками на сообщения', payload={"type": 'tags_call', "keyboard": self.name})
+        # self.keyboard.add_line()
+        self.keyboard.add_openlink_button('Управление подписками на сообщения', 'https://vk.com/testbotmemrea?w=app5748831_-199323686')
+        #self.keyboard.add_line()
+        #self.keyboard.add_callback_button(label='Выход', color=VkKeyboardColor.NEGATIVE, payload={"type": "exit_call", "keyboard": self.name})
 
     def infoCall(self, event):
         """Событие вызова профиля пользователя"""
@@ -101,6 +101,7 @@ id = {res1[0]}
 
     def tagsCall(self, event):
         """Событие вызова подписок"""
+        """Устарело. Направляй в приложение рассылки."""
         user_id = event.obj.user_id
         self.bot.sendKeyboard(user_id, "main_tags_keyboard", "Открываю Ваши подписки", True, True)
 
@@ -117,6 +118,7 @@ id = {res1[0]}
 
 
 class KeyboardMainTagsManager(KeyboardMain):
+    """Ну типа миниприложения круче, поэтому я все это зря делал, конечно!"""
     def __init__(self, bot, db):
         super().__init__(bot, db)
         self.self_building = True

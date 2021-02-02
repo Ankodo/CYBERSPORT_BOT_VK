@@ -24,6 +24,7 @@ class MessageHandler:
 
     def checkCommand(self, event):
         """Обработка текстовых сообщений"""
+        # NOTE: Давай по новой, Саша, рефакторинг херня
         request = event.obj.message['text']
         user_id = event.obj.message['from_id']
 
@@ -32,12 +33,11 @@ class MessageHandler:
 
         if res != None:
             if request != None and request != "":
-                if request in self.MessageCommands: 
-                    self.MessageCommands[request](event)
-                elif "!" == request[0]:
-                    self.showSimilar(event)
-                else:
-                    self.checkPending(event)
+                if not self.checkPending(event):
+                    if request in self.MessageCommands.keys(): 
+                        self.MessageCommands[request](event)
+                    else:
+                        self.bot.writeMsg(event.obj.message['from_id'], f"Команда не распознана. Напиши !Команды для списка всех команд.")
             else:
                 self.bot.writeMsg(event.obj.message['from_id'], f"Круто, а что это?")
         else:
@@ -49,12 +49,16 @@ class MessageHandler:
         """Проверка на ожидание ввода от пользователя"""
         self.db.select("Pending", "act", f"WHERE user_id='{event.obj.message['from_id']}'")
         res = self.db.cursor.fetchone()
+        print("Checking pending:", res)
+        res = res[0]
         if res != None:
-            res = res[0]
             if res in self.PendingStats:
                 self.PendingStats[res](event)
             else:
                 self.bot.writeMsg(event.obj.message['from_id'], f"Ошибка: {event.obj.message['text']} не найден. Отправьте это сообщение администраторам группы")
+            return True
+        else:
+            return False
 
     ####    КОМАНДЫ    #### 
 
