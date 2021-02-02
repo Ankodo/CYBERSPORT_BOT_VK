@@ -1,3 +1,5 @@
+from tools.getpostconstructor import *
+
 import re
 
 class Group:
@@ -7,12 +9,30 @@ class Group:
 
         self.bot = bot
         self.db = db
+        self.id = self.bot.id
 
         self.db.select("Tags")
-        self.tags = list(map(lambda x: x[0], self.db.cursor.fetchall()))
-
+        tags = self.db.cursor.fetchall()
+        self.tagsname = list(map(lambda x: x[0], tags))
+        self.tagspair = {}
+        for item in tags:
+            self.tagspair[item[0]] = item[1]
 
     def postEvent(self, event):
+        """Получаем подписки по тэгам и передаем приложению"""
+        post_tags = self.getPostTags(event)
+        id = event.obj.id
+        lists = []
+        for item in post_tags:
+            lists.append(self.tagspair[item])
+
+        self.repostByApp(id, lists)
+
+
+    def postEventByUserList(self, event):
+        """Составить список пользователей и разослать всем пост
+        NOTE: устарело, юзай postEvent
+        """
         post_tags = self.getPostTags(event)
         id = event.obj.id
         users = []
@@ -31,12 +51,30 @@ class Group:
         #   такие слова, что содержат решетку на первой позиции
         regex = "\#.\w+"
         words = re.findall(regex, text)
-        # избавляемся от ссылки на группу, находим их в списке тэгов
+        # избавляемся от ссылки на группу (если есть), находим их в списке тэгов
         words = list(map(lambda x: x.split('@')[0], words))
-        words = list(filter(lambda x: x in self.tags, words))
+        words = list(filter(lambda x: x in self.tagsname, words))
         return words
 
+    def repostByApp(self, note_id, lists):
+        data = {
+            "message": {
+                "attachment":f"wall-{self.id}_{note_id}"
+                #"message": "вы все педики"
+            },
+            "list_ids":lists,
+            "run_now":1
+        }
+        data = createJson(data)
+
+        header = {"Content-Type":"application/json"}
+
+        res = query("https://broadcast.vkforms.ru/api/v2/broadcast?token=api_83359_SgPRwkgwgnMLcCqPyVeTxd4n", "POST", header, data)
+        print(res)
+
     def repostToList(self, note_id, user_list):
-        """Отправить подписанным студентам запись"""
+        """Отправить подписанным студентам запись
+        NOTE: отныне пользуемся приложением для рассылки - repostByApp
+        """
         for user in user_list:
             self.bot.repostPost(user, note_id)

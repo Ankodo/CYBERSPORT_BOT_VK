@@ -2,6 +2,9 @@ import sqlite3
 
 
 class DataBase:
+    """
+    Да, это уродство. Но для серверной части сойдет, наверное
+    """
     def __init__(self, file):
         super().__init__()
         self.file_connect(file)
