@@ -1,2 +1,0 @@
-REGISTER_NAME - Ввод имени
-REGISTER_CODE - Ввод кода группы
