@@ -19,7 +19,7 @@ class KeyBoard:
 
     def checkCommand(self, event):
         """Проверить на наличие команды в своем списке"""
-        call = event.obj.payload.get('type')
+        call = event.object.payload.type
         if call in self.calls:
             self.calls[call](event)
             return True
@@ -74,7 +74,7 @@ class KeyboardMainMenu(KeyboardMain):
 
     def infoCall(self, event):
         """Событие вызова профиля пользователя"""
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.db.select("Students", "user_id", f"WHERE user_id='{user_id}'")
         res1 = self.db.cursor.fetchone()
         self.db.select("Students", "full_name", f"WHERE user_id='{user_id}'")
@@ -93,23 +93,23 @@ id = {res1[0]}
 
     def notesCall(self, event):
         """Событие вызова записей пользователя"""
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, self.name, "Тут что-то будет про записи 🤔🤔🤔")
 
     def gameCall(self, event):
         """Событие вызова игры"""
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, "main_game_start", "Запускаю игру", True)
 
     def tagsCall(self, event):
         """Событие вызова подписок"""
         """Устарело. Направляй в приложение рассылки."""
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, "main_tags_keyboard", "Открываю Ваши подписки", True, True)
 
     def exitCall(self, event):
         """Выход пользователя из системы"""
-        self.bot.sendKeyboard(event.obj.user_id, "main_login_keyboard", "Удачи! 🐉", True)
+        self.bot.sendKeyboard(event.object.user_id, "main_login_keyboard", "Удачи! 🐉", True)
 
 
 
@@ -159,8 +159,8 @@ class KeyboardMainTagsManager(KeyboardMain):
 
     def subCall(self, event):
         """Подписаться на тэг"""
-        user_id = event.obj.user_id
-        tag = event.obj.payload.get('tag')
+        user_id = event.object.user_id
+        tag = event.object.payload.tag
         message = f"Вы подписались на {tag}"
 
         self.db.select("Subscribes", "tag_id", f"WHERE user_id='{user_id}'")
@@ -177,8 +177,8 @@ class KeyboardMainTagsManager(KeyboardMain):
 
     def unSubCall(self, event):
         """Отписаться от тэга"""
-        user_id = event.obj.user_id
-        tag = event.obj.payload.get('tag')
+        user_id = event.object.user_id
+        tag = event.object.payload.tag
         message = f"Вы отписались от {tag}"
 
         self.db.select("Subscribes", "tag_id", f"WHERE user_id='{user_id}'")
@@ -196,7 +196,7 @@ class KeyboardMainTagsManager(KeyboardMain):
 
     def backCall(self, event):
         """Событие возврата в меню"""
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, "main_keyboard", "Возвращаю в меню", True)
 
 
@@ -225,13 +225,13 @@ class GameKeyboardMenu(KeyboardMain):
 
     def newGameCall(self, event):
         """Событие новой игры"""
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, "main_game", "Начинаю игру", True)
         self.game.gameManager(user_id, "newgame")
 
     def continueCall(self, event):
         """Событие продолжения игры"""
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.db.select("GameMaze", "m_coords", f"WHERE user_id='{user_id}'")
         if self.db.cursor.fetchone() != None:
             self.bot.sendKeyboard(user_id, "main_game", "Продолжаю игру", True)
@@ -240,7 +240,7 @@ class GameKeyboardMenu(KeyboardMain):
 
     def backCall(self, event):
         """Событие возврата в меню"""
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, "main_keyboard", "Возвращаю в меню", True)
 
 
@@ -272,32 +272,32 @@ class GameKeyboard(KeyboardMain):
         self.keyboard.add_callback_button(label='В меню', color=VkKeyboardColor.NEGATIVE, payload={"type": "menu_call", "keyboard": self.name})
 
     def forwardCall(self, event):
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, "main_game", "Идем вверх")
         self.game.gameManager(user_id, "move", "up")
 
     def leftCall(self, event):
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, "main_game", "Идем налево")
         self.game.gameManager(user_id, "move", "left")
 
     def rightCall(self, event):
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, "main_game", "Идем направо")
         self.game.gameManager(user_id, "move", "right")
 
     def stayCall(self, event):
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, "main_game", "Остаемся на месте")
         self.game.gameManager(user_id, "stay")
 
     def backCall(self, event):
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, "main_game", "Идем вниз")
         self.game.gameManager(user_id, "move", "down")
 
     def menuCall(self, event):
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.bot.sendKeyboard(user_id, "main_game_start", "Возвращаю в меню", True)
 
 #
@@ -317,7 +317,7 @@ class KeyboardLogin(KeyboardMain):
     def loginCall(self, event):
         """Событие вызова авторизации"""
         # NOTE: Лучше заменить на MINI APPS
-        user_id = event.obj.user_id
+        user_id = event.object.user_id
         self.db.select("Students", "user_id", f"WHERE user_id='{user_id}' AND full_name IS NOT NULL")
         res = self.db.cursor.fetchone()
         if res == None:
@@ -351,18 +351,18 @@ class KeyboardMainEditProfile(KeyboardMain):
 
     def editNameCall(self, event):
         """Редактирование имени пользователя"""
-        self.bot.sendKeyboard(event.obj.user_id, "cancel_keyboard", "Введи свое полное имя")
-        self.db.update("Pending", "act", "'EDIT_NAME'", f"WHERE user_id = '{event.obj.user_id}'")
+        self.bot.sendKeyboard(event.object.user_id, "cancel_keyboard", "Введи свое полное имя")
+        self.db.update("Pending", "act", "'EDIT_NAME'", f"WHERE user_id = '{event.object.user_id}'")
         self.db.connection.commit()
 
     def editGroupCall(self, event):
         """Редактирование группы пользователя"""
-        self.bot.sendKeyboard(event.obj.user_id, "cancel_keyboard", "Введи шифр группы")
-        self.db.update("Pending", "act", "'EDIT_CODE'", f"WHERE user_id = '{event.obj.user_id}'")
+        self.bot.sendKeyboard(event.object.user_id, "cancel_keyboard", "Введи шифр группы")
+        self.db.update("Pending", "act", "'EDIT_CODE'", f"WHERE user_id = '{event.object.user_id}'")
         self.db.connection.commit()
 
     def toMenuCall(self, event):
-        self.bot.sendKeyboard(event.obj.user_id, "main_keyboard", "Возвращаю в меню", True)
+        self.bot.sendKeyboard(event.object.user_id, "main_keyboard", "Возвращаю в меню", True)
 
 
 

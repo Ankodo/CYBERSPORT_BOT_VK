@@ -153,10 +153,11 @@ class ButtonHandler:
 
     def checkCommand(self, event):
         user_id = event.object.user_id
-        call = event.object.payload.get('type')
-        exception = event.object.payload.get('exception')
-        keyboard = event.object.payload.get('keyboard')
-        # OLD: keyboard = self.getCurrentKeyboard(user_id)
+        call = event.object.payload.type
+        exception = None
+        if hasattr(event.object.payload, 'exception'):
+            exception = event.object.payload.exception
+        keyboard = event.object.payload.keyboard
 
         def runEvent():
             if keyboard == None:
