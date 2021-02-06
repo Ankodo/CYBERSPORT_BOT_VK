@@ -72,7 +72,7 @@ def main():
     return main_text
 
 @app.route(f'/database')
-def main():
+def databasewatcher():
     main_text = """
     <h1>Server is up!</h1>
     <img src="http://cdn.funnyisms.com/d3540090-1765-4633-99ff-1bb3ba7e40ec.gif">
