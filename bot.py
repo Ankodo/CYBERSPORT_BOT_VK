@@ -54,7 +54,10 @@ class MessageHandler:
         self.db.select("Pending", "act", f"WHERE user_id='{event.object.user_id}'")
         res = self.db.cursor.fetchone()
         print("Checking pending:", res)
-        res = res[0]
+        #прости господи
+        if res != None:
+            res = res[0]
+        #
         if res != None:
             if res in self.PendingStats:
                 self.PendingStats[res](event)
