@@ -87,13 +87,13 @@ def databasewatcher():
     tags = db.cursor.fetchall()
     main_text += "<br><h3>Students:</h3><br>"
     for stud in studs:
-        main_text += stud + "<br>"
+        main_text += str(stud) + "<br>"
     main_text += "<br><h3>Pending:</h3><br>"
     for stud in pen:
-        main_text += stud + "<br>"
+        main_text += str(stud) + "<br>"
     main_text += "<br><h3>Tags::</h3><br>"
     for stud in tags:
-        main_text += stud + "<br>"
+        main_text += str(stud) + "<br>"
     return main_text
 
 @app.route(f'/{secret}', methods=['POST'])
