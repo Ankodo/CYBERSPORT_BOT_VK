@@ -24,13 +24,6 @@ group = Group(bot, db, miniapps_token)
 msgHandler = MessageHandler(bot, db)
 buttHandler = ButtonHandler(bot, db)
 
-def test(event):
-    bot.writeMsg(vk_test_id, "sosi psiku")
-
-
-def test2():
-    bot.writeMsg(vk_test_id, "Новый post запрос")
-
 Events = {
         "message_new" : msgHandler.checkCommand,
         "message_event" : buttHandler.checkCommand,
@@ -89,6 +82,8 @@ def post():
     kostil.append(str(data))
     data = json2obj(data)
     kostil.append(str(data))
+    if data.type == "confirmation":
+        return "32bd1368"
     checkEvent(data)
     return 'ok'
 

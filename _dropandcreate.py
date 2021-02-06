@@ -60,7 +60,7 @@ db.execute("""
 # """)
 
 db.execute("""
-    INSERT INTO TAGS VALUES ('#важное', 1059000)
+    INSERT INTO TAGS VALUES ('#важное', 1057409), ('#конкурс', 1057419), ('#новости', 1055874)
 """)
 #db.execute("INSERT INTO Students VALUES (412536100, 'Шашков Александр Андреевич', 'КМБО-03-20', 'main_sub_keyboard')")
 
