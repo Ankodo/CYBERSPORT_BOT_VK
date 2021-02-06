@@ -101,3 +101,6 @@ for event in bot.longpoll.listen():
     except:
         print ("Error: unable to start thread:", err)
 """
+
+if __name__ == '__main__':
+    app.run()
