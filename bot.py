@@ -28,8 +28,8 @@ class MessageHandler:
     def checkCommand(self, event):
         """Обработка текстовых сообщений"""
         # NOTE: Давай по новой, Саша, рефакторинг херня
-        request = event.object.message['text']
-        user_id = event.object.message['from_id']
+        request = event.object.body
+        user_id = event.object.user_id
 
         self.db.select("Students", "user_id", f"WHERE user_id='{user_id}'")
         res = self.db.cursor.fetchone()
@@ -40,9 +40,9 @@ class MessageHandler:
                     if request in self.MessageCommands.keys():
                         self.MessageCommands[request](event)
                     else:
-                        self.bot.writeMsg(event.object.message['from_id'], f"Команда не распознана. Напиши !Команды для списка всех команд.")
+                        self.bot.writeMsg(event.object.user_id, f"Команда не распознана. Напиши !Команды для списка всех команд.")
             else:
-                self.bot.writeMsg(event.object.message['from_id'], f"Круто, а что это?")
+                self.bot.writeMsg(event.object.user_id, f"Круто, а что это?")
         else:
             #self.bot.sendKeyboard(user_id, "main_login_keyboard", """Привет, давай познакомимся! 🐉""")
             self.bot.sendKeyboard(user_id, "main_keyboard", """Привет 🐉""")
@@ -51,7 +51,7 @@ class MessageHandler:
 
     def checkPending(self, event):
         """Проверка на ожидание ввода от пользователя"""
-        self.db.select("Pending", "act", f"WHERE user_id='{event.object.message['from_id']}'")
+        self.db.select("Pending", "act", f"WHERE user_id='{event.object.user_id}'")
         res = self.db.cursor.fetchone()
         print("Checking pending:", res)
         res = res[0]
@@ -59,7 +59,7 @@ class MessageHandler:
             if res in self.PendingStats:
                 self.PendingStats[res](event)
             else:
-                self.bot.writeMsg(event.object.message['from_id'], f"Ошибка: {event.object.message['text']} не найден. Отправьте это сообщение администраторам группы")
+                self.bot.writeMsg(event.object.user_id, f"Ошибка: {event.object.body} не найден. Отправьте это сообщение администраторам группы")
             return True
         else:
             return False
@@ -67,13 +67,13 @@ class MessageHandler:
     ####    КОМАНДЫ    ####
 
     def sayHi(self, event):
-        self.bot.writeMsg(event.object.message['from_id'], "привет!!!")
+        self.bot.writeMsg(event.object.user_id, "привет!!!")
 
     def showSimilar(self, event):
-        self.bot.writeMsg(event.object.message['from_id'], "Похожие команды:")
+        self.bot.writeMsg(event.object.user_id, "Похожие команды:")
 
     def showExampleKeyboard(self, event):
-        user_id = event.object.message['from_id']
+        user_id = event.object.user_id
         self.db.select("Students", "user_id", f"WHERE user_id='{user_id}'")
         res = self.db.cursor.fetchone()
         self.bot.sendKeyboard(user_id, "main_keyboard", """Держи 🐉""", True)
@@ -82,32 +82,32 @@ class MessageHandler:
 
     def registerName(self, event):
         # Регистрируем имя
-        self.db.update("Students", "full_name", f"'{event.object.message['text']}'", f"WHERE user_id = '{event.object.message['from_id']}'")
-        self.db.update("Pending", "act", "'REGISTER_CODE'", f"WHERE user_id = '{event.object.message['from_id']}'")
+        self.db.update("Students", "full_name", f"'{event.object.body}'", f"WHERE user_id = '{event.object.user_id}'")
+        self.db.update("Pending", "act", "'REGISTER_CODE'", f"WHERE user_id = '{event.object.user_id}'")
         self.db.connection.commit()
-        self.bot.writeMsg(event.object.message['from_id'], "Рад познакомиться. 🐉 Теперь введи шифр своей группы")
+        self.bot.writeMsg(event.object.user_id, "Рад познакомиться. 🐉 Теперь введи шифр своей группы")
 
     def registerCode(self, event):
         # Регистрируем код
-        self.db.update("Students", "code", f"'{event.object.message['text']}'", f"WHERE user_id = '{event.object.message['from_id']}'")
-        self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{event.object.message['from_id']}'")
+        self.db.update("Students", "code", f"'{event.object.body}'", f"WHERE user_id = '{event.object.user_id}'")
+        self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{event.object.user_id}'")
         self.db.connection.commit()
-        self.bot.sendKeyboard(event.object.message['from_id'], "main_keyboard", "Я запомнил 🐉", True)
+        self.bot.sendKeyboard(event.object.user_id, "main_keyboard", "Я запомнил 🐉", True)
 
     ####    РЕДАКТИРОВАНИЕ    ####
     def editName(self, event):
         # Редактируем имя
-        user_id = event.object.message['from_id']
-        self.db.update("Students", "full_name", f"'{event.object.message['text']}'", f"WHERE user_id = '{event.object.message['from_id']}'")
-        self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{event.object.message['from_id']}'")
+        user_id = event.object.user_id
+        self.db.update("Students", "full_name", f"'{event.object.body}'", f"WHERE user_id = '{user_id}'")
+        self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{user_id}'")
         self.db.connection.commit()
         self.bot.sendKeyboard(user_id, "main_info_edit_keyboard", "Имя успешно обновлено")
 
     def editCode(self, event):
         # Редактируем код
-        user_id = event.object.message['from_id']
-        self.db.update("Students", "code", f"'{event.object.message['text']}'", f"WHERE user_id = '{event.object.message['from_id']}'")
-        self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{event.object.message['from_id']}'")
+        user_id = event.object.user_id
+        self.db.update("Students", "code", f"'{event.object.body}'", f"WHERE user_id = '{user_id}'")
+        self.db.update("Pending", "act", "NULL", f"WHERE user_id = '{user_id}'")
         self.db.connection.commit()
         self.bot.sendKeyboard(user_id, "main_info_edit_keyboard", "Группа успешно обновлена")
 
