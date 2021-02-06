@@ -1,4 +1,6 @@
-# Потому что питон по умолчанию не копирует, а ссылается на объект, мда
+#!/usr/bin/python3.6
+# -*- coding: utf-8 -*-
+
 from copy import deepcopy
 
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
@@ -42,7 +44,7 @@ class KeyboardMain(KeyBoard):
 
 #
 #  Главное меню
-# 
+#
 
 
 class KeyboardMainMenu(KeyboardMain):
@@ -189,7 +191,7 @@ class KeyboardMainTagsManager(KeyboardMain):
             # А вдруг баг
             message = f"Вы уже отписались от {tag}"
 
-        
+
         self.bot.sendKeyboard(user_id, "main_tags_keyboard", message, True, True)
 
     def backCall(self, event):
@@ -367,7 +369,7 @@ class KeyboardMainEditProfile(KeyboardMain):
 #
 # Побочные кнопки в виде сообщений
 # NOTE: Так как можно привязать только одну ГЛАВНУЮ клавиатуру,
-# Функции для кнопок-сообщений будут реализованы в классе 
+# Функции для кнопок-сообщений будут реализованы в классе
 # ButtonHandler. Либо можно функции вынести в отдельный класс,
 # и передавать payload туда
 #

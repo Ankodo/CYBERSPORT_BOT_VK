@@ -1,3 +1,6 @@
+#!/usr/bin/python3.6
+# -*- coding: utf-8 -*-
+
 # СОЗДАТЬ БД ДЛЯ БОТА
 
 from db import DataBase
@@ -47,7 +50,7 @@ db.execute("""
 # УСТАРЕЛО, ЮЗАЕМ ПРИЛОЖЕНИЕ ДЛЯ РАССЫЛКИ
 # db.execute("""
 #     CREATE TABLE Subscribes
-#     ( 
+#     (
 #         user_id INTEGER NOT NULL,
 #         tag_id TEXT  NOT NULL,
 #         PRIMARY KEY (user_id, tag_id),
@@ -57,7 +60,7 @@ db.execute("""
 # """)
 
 db.execute("""
-    INSERT INTO TAGS VALUES ('#важное', 1057409), ('#новости', 1055874), ('#конкурс', 1057419)
+    INSERT INTO TAGS VALUES ('#важное', 1059000)
 """)
 #db.execute("INSERT INTO Students VALUES (412536100, 'Шашков Александр Андреевич', 'КМБО-03-20', 'main_sub_keyboard')")
 

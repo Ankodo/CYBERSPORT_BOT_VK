@@ -1,3 +1,6 @@
+#!/usr/bin/python3.6
+# -*- coding: utf-8 -*-
+
 import random
 import os
 
@@ -10,7 +13,7 @@ class LabGen:
             'E':(1, 0),
             'W':(-1, 0)
         }
-        
+
         return dirmanager[direction]
 
     def generate(self, max_size, seed, id):
@@ -18,7 +21,7 @@ class LabGen:
             'E':'W',
             'W':'E',
             'N':'S',
-            'S':'N' 
+            'S':'N'
         }
 
         self.Bitwise = {
@@ -26,7 +29,7 @@ class LabGen:
             'S':2,
             'E':4,
             'W':8,
-        
+
         }
         self.max_x = max_size
         self.max_y = max_size
@@ -53,7 +56,7 @@ class LabGen:
                 var = Grid[y][x]
                 var |= self.Bitwise[direction]
                 Grid[y][x] = var
-                Grid[n_y][n_x] = Grid[n_y][n_x] | self.Bitwise[self.Opposite[direction]] 
+                Grid[n_y][n_x] = Grid[n_y][n_x] | self.Bitwise[self.Opposite[direction]]
                 self.worker_passage(n_x, n_y, Grid)
 
     def save_to_text(self, Grid, id):
@@ -88,7 +91,7 @@ class Game:
         self.db.connection.commit()
         self.showMazePart(id, [0, 0])
         self.bot.writeMsg(id, """
-Добро пожаловать в лабиринт. Тут очень темно и ничего не видно. Поэтому 
+Добро пожаловать в лабиринт. Тут очень темно и ничего не видно. Поэтому
 придется передвигаться вслепую. Также тут где-то рядом бегает монстр, который за
 один ход делает два шага. Естественно, с ним лучше не пересекаться. Удачи!
         """)
@@ -178,7 +181,7 @@ class Game:
         m_res = list(map(int, m_res))
 
         monster_position = None
-        
+
         self.bot.writeMsg(id, """
 Вы остаетесь на месте, чтобы получше разглядеть путь.
         """)
@@ -269,7 +272,7 @@ class Game:
             text.append([])
             for j in range(6):
                 text[i].append(" ")
-            text[i].append("\n") 
+            text[i].append("\n")
 
         for i in [-1, 0, 1]:
             for j in [-1, 0, 1]:
@@ -293,7 +296,7 @@ class Game:
                         text[i+2][j+1] = "-"
                 else:
                     text[i+1][j+1] = "#"
-        
+
         result = ""
         for item in text:
             result += "".join(item)
@@ -309,7 +312,7 @@ class Game:
         maze = []
         with open(f'{id}.txt') as f:
             maze = f.readlines()
-            maze = [x.strip() for x in maze] 
+            maze = [x.strip() for x in maze]
 
         return maze
 

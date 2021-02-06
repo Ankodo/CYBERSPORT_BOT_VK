@@ -1,3 +1,6 @@
+#!/usr/bin/python3.6
+# -*- coding: utf-8 -*-
+
 from tools.getpostconstructor import *
 
 import re
@@ -22,7 +25,7 @@ class Group:
     def postEvent(self, event):
         """Получаем подписки по тэгам и передаем приложению"""
         post_tags = self.getPostTags(event)
-        id = event.obj.id
+        id = event.object.id
         lists = []
         for item in post_tags:
             lists.append(self.tagspair[item])
@@ -35,7 +38,7 @@ class Group:
         NOTE: устарело, юзай postEvent
         """
         post_tags = self.getPostTags(event)
-        id = event.obj.id
+        id = event.object.id
         users = []
         for tag in post_tags:
             self.db.select("Subscribes", "user_id", f"WHERE tag_id='{tag}'")
@@ -48,7 +51,7 @@ class Group:
 
     def getPostTags(self, event):
         """Получить тэги записи"""
-        text = event.obj.text.rstrip()
+        text = event.object.text.rstrip()
         #   такие слова, что содержат решетку на первой позиции
         regex = "\#.\w+"
         words = re.findall(regex, text)

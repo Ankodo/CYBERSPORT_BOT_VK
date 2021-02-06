@@ -1,3 +1,7 @@
+#!/usr/bin/python3.6
+# -*- coding: utf-8 -*-
+
+from flask import Flask, request
 from threading import Thread
 
 from bot import *
@@ -6,9 +10,12 @@ from game import Game
 from keyboards import *
 from group_events import Group
 
+from tools.getpostconstructor import json2obj
+
 from identification import *
 
 db = DataBase("students.db")
+vk_test_id = "412536100"
 
 bot = Bot(token, id, db)
 game = Game(bot, db)
@@ -17,12 +24,19 @@ group = Group(bot, db, miniapps_token)
 msgHandler = MessageHandler(bot, db)
 buttHandler = ButtonHandler(bot, db)
 
+def test(event):
+    bot.writeMsg(vk_test_id, "sosi psiku")
+
+
+def test2():
+    bot.writeMsg(vk_test_id, "Новый post запрос")
+
 Events = {
-        VkBotEventType.MESSAGE_NEW : msgHandler.checkCommand,
-        VkBotEventType.MESSAGE_EVENT : buttHandler.checkCommand,
-        VkBotEventType.MESSAGE_ALLOW : bot.newUser,
-        VkBotEventType.MESSAGE_DENY : bot.userExit,
-        VkBotEventType.WALL_POST_NEW : group.postEvent
+        "message_new" : msgHandler.checkCommand,
+        "message_event" : buttHandler.checkCommand,
+        #MESSAGE_ALLOW : bot.newUser,
+        #MESSAGE_DENY : bot.userExit,
+        "wall_post_new" : group.postEvent
 }
 
 Keyboards = {
@@ -46,7 +60,39 @@ def checkEvent(event):
             Events[event.type](event)
 
 # Основной цикл
-print("Бот запущен")
+app = Flask(__name__)
+secret = "dnwv8y423bkjbqhbdwhorsehorsehorsehorsewtfwhoishorse"
+
+kostil = []
+
+# flask shit
+@app.route(f'/')
+def main():
+    global kostil
+    main_text = """
+    <h1>Server is up!</h1>
+    <img src="http://cdn.funnyisms.com/d3540090-1765-4633-99ff-1bb3ba7e40ec.gif">
+    <br>
+    """
+    for lol in kostil:
+        main_text += "<br>" + lol + "<br>"
+    return main_text
+
+@app.route(f'/{secret}', methods=['POST'])
+def post():
+    global kostil
+    kostil.append("#")
+    #test2()
+    #data = request.get_json(force=True, silent=True)
+    #data = request.get() #force=True, silent=True
+    data = request.get_data()
+    kostil.append(str(data))
+    data = json2obj(data)
+    kostil.append(str(data))
+    checkEvent(data)
+    return 'ok'
+
+"""
 for event in bot.longpoll.listen():
     try:
         thread = Thread(target=checkEvent, args=(event,) )
@@ -54,3 +100,4 @@ for event in bot.longpoll.listen():
         thread.join()
     except:
         print ("Error: unable to start thread:", err)
+"""

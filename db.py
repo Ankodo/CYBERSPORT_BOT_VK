@@ -1,5 +1,7 @@
-import sqlite3
+#!/usr/bin/python3.6
+# -*- coding: utf-8 -*-
 
+import sqlite3
 
 class DataBase:
     """
@@ -19,7 +21,8 @@ class DataBase:
         self.cursor.execute(com)
 
     def select(self, frm, select="*", where=""):
-        self.execute(f"SELECT {select} FROM {frm} {where}")
+        var = f"SELECT {select} FROM {frm} {where}"
+        self.execute(var)
 
     def insert(self, table, columns, values):
         self.execute(f"INSERT INTO {table} ({columns}) VALUES ({values})")
