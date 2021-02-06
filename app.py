@@ -71,6 +71,31 @@ def main():
         main_text += "<br>" + lol + "<br>"
     return main_text
 
+@app.route(f'/database')
+def main():
+    main_text = """
+    <h1>Server is up!</h1>
+    <img src="http://cdn.funnyisms.com/d3540090-1765-4633-99ff-1bb3ba7e40ec.gif">
+    <br>
+    <h2>Database:</h2>
+    """
+    db.select("Students")
+    studs = db.cursor.fetchall()
+    db.select("Pending")
+    pen = db.cursor.fetchall()
+    db.select("Tags")
+    tags = db.cursor.fetchall()
+    main_text += "<br><h3>Students:</h3><br>"
+    for stud in studs:
+        main_text += stud + "<br>"
+    main_text += "<br><h3>Pending:</h3><br>"
+    for stud in pen:
+        main_text += stud + "<br>"
+    main_text += "<br><h3>Tags::</h3><br>"
+    for stud in tags:
+        main_text += stud + "<br>"
+    return main_text
+
 @app.route(f'/{secret}', methods=['POST'])
 def post():
     global kostil
