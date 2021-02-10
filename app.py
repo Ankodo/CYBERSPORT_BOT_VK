@@ -15,7 +15,6 @@ from tools.getpostconstructor import json2obj
 from identification import *
 
 db = DataBase("students.db")
-vk_test_id = "412536100"
 
 bot = Bot(token, id, db)
 game = Game(bot, db)
@@ -54,8 +53,6 @@ def checkEvent(event):
 
 # Основной цикл
 app = Flask(__name__)
-secret = "dnwv8y423bkjbqhbdwhorsehorsehorsehorsewtfwhoishorse"
-
 kostil = []
 
 # flask shit
@@ -96,19 +93,17 @@ def databasewatcher():
         main_text += str(stud) + "<br>"
     return main_text
 
-@app.route(f'/{secret}', methods=['POST'])
+@app.route(f'/{link}', methods=['POST'])
 def post():
     global kostil
     kostil.append("#")
-    #test2()
     #data = request.get_json(force=True, silent=True)
-    #data = request.get() #force=True, silent=True
     data = request.get_data()
     kostil.append(str(data))
     data = json2obj(data)
     kostil.append(str(data))
     if data.type == "confirmation":
-        return "32bd1368"
+        return confirmation
     checkEvent(data)
     return 'ok'
 
