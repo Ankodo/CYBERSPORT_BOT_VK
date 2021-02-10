@@ -223,7 +223,7 @@ class Bot:
         self.keyboards = keyboards
 
     def newUser(self, event):
-        self.sendKeyboard(event.object.user_id, "main_login_keyboard", "Добро пожаловать!\n Давай заполним твой профиль")
+        self.sendKeyboard(event.object.user_id, "main_keyboard", "Добро пожаловать!")
 
     def userExit(self, event):
         #print(f"Пользователь {event.object.user_id} запретил сообщения.")

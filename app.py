@@ -27,7 +27,7 @@ buttHandler = ButtonHandler(bot, db)
 Events = {
         "message_new" : msgHandler.checkCommand,
         "message_event" : buttHandler.checkCommand,
-        #MESSAGE_ALLOW : bot.newUser,
+        "message_allow" : bot.newUser,
         #MESSAGE_DENY : bot.userExit,
         "wall_post_new" : group.postEvent
 }
