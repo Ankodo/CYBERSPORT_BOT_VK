@@ -7,6 +7,8 @@ def get(row):
     pass
 
 def all():
+    f = open("botlogs.txt", "a")
+    f.close()
     f = open("botlogs.txt", "r")
     s = f.read()
     f.close()
