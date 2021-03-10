@@ -4,6 +4,8 @@
 from flask import Flask, request
 from threading import Thread
 
+import logger
+
 from bot import *
 from db import DataBase
 from game import Game
@@ -45,27 +47,22 @@ Keyboards = {
 bot.setKeyboards(Keyboards)
 
 def checkEvent(event):
-        # print("НОВЫЙ ЭВЕНТ")
-        # print(event)
         print(event.type)
         if event.type in Events:
             Events[event.type](event)
 
 # Основной цикл
 app = Flask(__name__)
-kostil = []
 
 # flask shit
 @app.route(f'/')
 def main():
-    global kostil
     main_text = """
     <h1>Server is up!</h1>
     <img src="http://cdn.funnyisms.com/d3540090-1765-4633-99ff-1bb3ba7e40ec.gif">
     <br>
     """
-    for lol in kostil:
-        main_text += "<br>" + lol + "<br>"
+    main_text += logger.all()
     return main_text
 
 @app.route(f'/database')
@@ -95,27 +92,16 @@ def databasewatcher():
 
 @app.route(f'/{link}', methods=['POST'])
 def post():
-    global kostil
-    kostil.append("#")
     #data = request.get_json(force=True, silent=True)
     data = request.get_data()
-    kostil.append(str(data))
+    log = f"#<br>{str(data)}"
     data = json2obj(data)
-    kostil.append(str(data))
+    log += f" : {str(data)}"
+    logger.log(log)
     if data.type == "confirmation":
         return confirmation
     checkEvent(data)
     return 'ok'
-
-"""
-for event in bot.longpoll.listen():
-    try:
-        thread = Thread(target=checkEvent, args=(event,) )
-        thread.start()
-        thread.join()
-    except:
-        print ("Error: unable to start thread:", err)
-"""
 
 if __name__ == '__main__':
     app.run()
