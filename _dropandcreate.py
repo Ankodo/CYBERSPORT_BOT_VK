@@ -60,9 +60,8 @@ db.execute("""
 # """)
 
 db.execute("""
-    INSERT INTO TAGS VALUES ('#важное', 1057409), ('#конкурс', 1057419), ('#новости', 1055874)
+    INSERT INTO TAGS VALUES ('#киберfire', 1030787), ('#конкурс', 1017367), ('#новости', 1020555), ('#киберsale', 1017366), ('#анонс', 1017119), ('#киберnews', 1016793), ('#nурниры', 1016042)
 """)
-#db.execute("INSERT INTO Students VALUES (412536100, 'Шашков Александр Андреевич', 'КМБО-03-20', 'main_sub_keyboard')")
 
 db.connection.commit()
 
