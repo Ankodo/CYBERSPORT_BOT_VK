@@ -10,4 +10,4 @@ miniapps_token = "https://broadcast.vkforms.ru/api/v2/broadcast?token=api_83494_
 # Код подтверждения для callback
 confirmation = "8309c96c"
 # Адрес, по которой будут слушаться запросы
-link = "/callback"
+link = "/cybersport_bot_vk"
